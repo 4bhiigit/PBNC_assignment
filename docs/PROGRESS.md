@@ -32,15 +32,15 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] Celery app configuration (queues: ingest, pages, finalize) & stub async task
   - [x] Phase 2 test suite & verification (23 passed in 11.58s, ruff clean, mypy clean)
 
-- [ ] **Phase 3: Ingest + OCR + Rules Parser (Offline End-to-End Slice)**
-  - [ ] `pipeline/ingest.py`, `page_analysis.py` (text layer vs scanned)
-  - [ ] `pipeline/preprocess.py` (OSD orientation, deskew, denoise, blur score, DPI)
-  - [ ] `pipeline/ocr.py` (Tesseract word-level confidences, page aggregation)
-  - [ ] `pipeline/headers_footers.py` (repeated line stripping)
-  - [ ] Extractor interface + `RulesExtractor` + `MockExtractor`
-  - [ ] Pure regex parsers for question numbers and option formats
-  - [ ] Celery worker pipeline execution (`process_document` -> `process_page` -> `finalize_document`)
-  - [ ] Phase 3 test suite & verification
+- [x] **Phase 3: Ingest + OCR + Rules Parser (Offline End-to-End Slice)**
+  - [x] `pipeline/ingest.py`, `page_analysis.py` (text layer vs scanned)
+  - [x] `pipeline/preprocess.py` (OSD orientation, deskew, denoise, blur score, DPI)
+  - [x] `pipeline/ocr.py` (Tesseract word-level confidences, page aggregation)
+  - [x] `pipeline/headers_footers.py` (repeated line stripping)
+  - [x] Extractor interface + `RulesExtractor` + `MockExtractor`
+  - [x] Pure regex parsers for question numbers and option formats
+  - [x] Celery worker pipeline execution (`process_document` -> `process_page` -> `finalize_document`)
+  - [x] Phase 3 test suite & verification (94 passed in 40.90s, ruff clean, mypy clean)
 
 - [ ] **Phase 4: LLM Extraction, Grounding, Stitching, Figures**
   - [ ] `LLMProvider` interface + `GeminiExtractor` (`google-genai`, structured Pydantic schema)
@@ -100,12 +100,12 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 2 Completed -> Ready for Phase 3 (Ingest + OCR + Rules Parser)
-- **Active Task:** Phase 3 implementation
+- **Current Phase:** Phase 3 Completed -> Ready for Phase 4 (LLM Extraction, Grounding, Stitching, Figures)
+- **Active Task:** Phase 4 planning and implementation
 - **Verification:**
-  - Tests: `uv run pytest -v` (23 passed in 11.58s across auth, upload, validation, storage, and cross-tenant authz)
+  - Tests: `uv run pytest tests` (94 passed in 40.90s across auth, upload, storage, numbering, options, page analysis, rules extraction, and full end-to-end async worker pipelines)
   - Linter: `uv run ruff check app tests` (0 errors)
-  - Formatter: `uv run ruff format --check app tests` (47 files formatted)
-  - Typecheck: `uv run mypy app` (0 issues in 41 source files)
-  - Architecture: `docs/DECISIONS.md` ADRs added for async 202, 404 security, encrypted PDF rejection, and storage sharding
+  - Formatter: `uv run ruff format --check app tests` (68 files verified)
+  - Typecheck: `uv run mypy app` (0 issues across 57 source files)
+  - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None

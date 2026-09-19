@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.auth import router as auth_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.health import router as health_router
+from app.api.v1.questions import router as questions_router
 from app.config import get_settings
 from app.errors import register_error_handlers
 from app.logging import request_id_ctx, setup_logging
@@ -72,3 +73,4 @@ register_error_handlers(app)
 app.include_router(health_router)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
+app.include_router(questions_router, prefix="/api/v1")
