@@ -42,14 +42,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] Celery worker pipeline execution (`process_document` -> `process_page` -> `finalize_document`)
   - [x] Phase 3 test suite & verification (94 passed in 40.90s, ruff clean, mypy clean)
 
-- [ ] **Phase 4: LLM Extraction, Grounding, Stitching, Figures**
-  - [ ] `LLMProvider` interface + `GeminiExtractor` (`google-genai`, structured Pydantic schema)
-  - [ ] Fallback handling to `RulesExtractor` on failure/timeout (`LLM_FALLBACK_USED`)
-  - [ ] `grounding.py` fuzzy grounding check (`rapidfuzz`) & `LOW_GROUNDING` flag
-  - [ ] Rules vs LLM cross-check (`COUNT_MISMATCH`)
-  - [ ] `stitcher.py` (multi-page question stitching, heuristics, orphan fragments)
-  - [ ] `figures.py` (crop figure/table bounding boxes, store as `question_assets`)
-  - [ ] Phase 4 test suite & verification
+- [x] **Phase 4: LLM Extraction, Grounding, Stitching, Figures**
+  - [x] `LLMProvider` interface + `GeminiExtractor` (`google-genai`, structured Pydantic schema)
+  - [x] Fallback handling to `RulesExtractor` on failure/timeout (`LLM_FALLBACK_USED`)
+  - [x] `grounding.py` fuzzy grounding check (`rapidfuzz`) & `LOW_GROUNDING` flag
+  - [x] Rules vs LLM cross-check (`COUNT_MISMATCH`)
+  - [x] `stitcher.py` (multi-page question stitching, heuristics, orphan fragments, inferred numbers)
+  - [x] `figures.py` (crop figure/table bounding boxes, store as `question_assets`)
+  - [x] Phase 4 test suite & live Gemini verification
 
 - [ ] **Phase 5: Answer Key & Multi-Document Links**
   - [ ] `answer_key/` (detect, parse, normalize, match)
@@ -74,6 +74,7 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [ ] Full test suite execution & coverage report
   - [ ] `scripts/evaluate.py` comparing output against ground-truth JSON
   - [ ] Real evaluation metrics saved to `docs/demo_evidence/evaluation.md`
+  - [ ] Phase 7 verification
 
 - [ ] **Phase 8: Documentation, Postman, Demo Evidence**
   - [ ] `README.md` (quick start, architecture overview, configuration, test instructions)
@@ -100,12 +101,16 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 3 Completed -> Ready for Phase 4 (LLM Extraction, Grounding, Stitching, Figures)
-- **Active Task:** Phase 4 planning and implementation
-- **Verification:**
-  - Tests: `uv run pytest tests` (94 passed in 40.90s across auth, upload, storage, numbering, options, page analysis, rules extraction, and full end-to-end async worker pipelines)
-  - Linter: `uv run ruff check app tests` (0 errors)
-  - Formatter: `uv run ruff format --check app tests` (68 files verified)
-  - Typecheck: `uv run mypy app` (0 issues across 57 source files)
+- **Current Phase:** Phase 4 Completed -> Ready for Phase 5 (Answer Key & Multi-Document Links)
+- **Active Task:** Phase 5 planning and implementation
+- **Verification Results:**
+  - Full Test Suite: `uv run pytest -q` -> **112 passed, 5 warnings in 128.42s** (0:02:08)
+  - Live Gemini API Test (`tests/integration/test_pipeline_gemini.py`):
+    - Model: `gemini-3.6-flash`
+    - Items Extracted: 2 questions
+    - Grounding Scores: Q1=0.961, Q2=0.935 (well above 0.70 threshold)
+    - Quality Flags: `[]` (clean extraction)
+  - Linter: `uv run ruff check app tests` -> **All checks passed!**
+  - Typecheck: `uv run mypy app` -> **Success: no issues found in 64 source files**
   - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None

@@ -49,3 +49,21 @@ This document records the architectural and design decisions made during the dev
   - Direct database BLOB storage: Rejected because large PDFs and high-DPI page renders degrade database performance.
   - S3 / MinIO only: Supported as an alternative backend, but local disk volume is the default to avoid unnecessary runtime dependencies on single-host deployments.
 - **Consequences:** Storage is modular, safe against path traversal, and easily swappable with MinIO/S3 in clustered environments.
+
+---
+
+## ADR 5: LLM Structured Output, Concurrency Limiting, and Deterministic Fallback
+
+- **Status:** Accepted
+- **Context:** Extracting unstructured question papers using external LLMs introduces external network latency, transient errors (e.g. 503 capacity spikes), potential hallucination, and prompt-injection risks from untrusted document content.
+- **Decision:**
+  1. Use the official `google-genai` SDK with strict Pydantic `response_schema=PageExtraction` and `temperature=0.0`.
+  2. Implement an anti-injection system prompt instructing the model to treat document content as untrusted examination text, never solve questions, and never invent missing numbers or options.
+  3. Cap concurrency globally using a Redis distributed semaphore (`LLM_MAX_CONCURRENCY`) with in-memory fallback.
+  4. Implement one retry on transient timeout/503 errors, followed by automatic graceful fallback to `RulesExtractor` with the `LLM_FALLBACK_USED` quality flag.
+  5. Compute independent fuzzy grounding scores via RapidFuzz partial ratio against the raw OCR/text layer; scores below 0.70 trigger `LOW_GROUNDING`.
+  6. Cross-check LLM question counts against regex rules; significant divergence triggers `COUNT_MISMATCH`.
+- **Alternatives Considered:**
+  - Free-form text prompts: Rejected because schema compliance and type safety cannot be guaranteed.
+  - Aborting pipeline on LLM failure: Rejected because the assignment requires offline operation without external API keys (`EXTRACTOR=rules`).
+- **Consequences:** The pipeline remains robust against API outages, works offline without external dependencies, and exposes independent verification signals for every extracted question.

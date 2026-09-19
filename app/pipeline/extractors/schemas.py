@@ -45,6 +45,7 @@ class ExtractedItem(BaseModel):
     table_markdown: str | None = None
     inline_answer_raw: str | None = None
     self_confidence: float = 1.0
+    flags: list[str] = Field(default_factory=list)
     notes: str | None = None
 
 
@@ -64,3 +65,4 @@ class PageExtraction(BaseModel):
     section_heading: str | None = None
     items: list[ExtractedItem] = Field(default_factory=list)
     answer_key_entries: list[AnswerKeyItem] = Field(default_factory=list)
+    flags: list[str] = Field(default_factory=list)

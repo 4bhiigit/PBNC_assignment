@@ -11,14 +11,22 @@ from app.db.models.document import Document
 from app.db.models.page import Page
 from app.db.models.processing_event import ProcessingEvent
 from app.db.models.question import Question
+from app.db.models.question_asset import QuestionAsset
+from app.db.models.warning import Warning
 from app.db.session import get_sync_db
+from app.pipeline.extractors.base import Extractor
+from app.pipeline.extractors.gemini import GeminiExtractor
 from app.pipeline.extractors.mock import MockExtractor
 from app.pipeline.extractors.rules import RulesExtractor
-from app.pipeline.extractors.schemas import PageContext
+from app.pipeline.extractors.schemas import PageContext, PageExtraction
+from app.pipeline.figures import process_question_figures
+from app.pipeline.grounding import check_count_mismatch, verify_item_grounding
 from app.pipeline.headers_footers import clean_page_lines, find_repeated_header_footers
 from app.pipeline.ingest import ingest_document
 from app.pipeline.ocr import run_ocr
+from app.pipeline.options import normalize_answer_value
 from app.pipeline.preprocess import preprocess_page_image
+from app.pipeline.stitcher import PageExtractionInput, stitch_document_extractions
 from app.workers.celery_app import celery
 
 logger = logging.getLogger(__name__)
@@ -167,6 +175,12 @@ def process_page(self: Any, document_id_str: str, page_no: int) -> dict[str, Any
             page.ocr_mean_conf = ocr_conf
             page.raw_text = page_text
 
+        # Fetch previous page text for continuity context
+        prev_page = session.execute(
+            select(Page).where(Page.document_id == doc_uuid, Page.page_no == page_no - 1)
+        ).scalar_one_or_none()
+        prev_text = prev_page.raw_text if prev_page else None
+
         ctx = PageContext(
             document_id=doc_uuid,
             page_no=page_no,
@@ -175,10 +189,42 @@ def process_page(self: Any, document_id_str: str, page_no: int) -> dict[str, Any
             text_source=text_source,
             image_bytes=image_bytes,
             ocr_confidence=ocr_conf,
+            prev_page_context=prev_text,
         )
 
-        extractor = MockExtractor() if settings.extractor == "mock" else RulesExtractor()
+        extractor: Extractor
+        if settings.extractor == "mock":
+            extractor = MockExtractor()
+        elif settings.extractor == "rules":
+            extractor = RulesExtractor()
+        else:
+            extractor = GeminiExtractor()
+
         extraction = extractor.extract_page(ctx)
+
+        # Grounding check for each item
+        for item in extraction.items:
+            verify_item_grounding(item, source_text=page_text)
+
+        # Count cross-check if using LLM/hybrid
+        if settings.extractor in ("hybrid", "llm"):
+            try:
+                rules_extraction = RulesExtractor().extract_page(ctx)
+                if check_count_mismatch(len(extraction.items), len(rules_extraction.items)):
+                    if "COUNT_MISMATCH" not in extraction.flags:
+                        extraction.flags.append("COUNT_MISMATCH")
+                    page.quality_flags.append(
+                        {
+                            "code": "COUNT_MISMATCH",
+                            "severity": "warning",
+                            "message": (
+                                f"LLM items: {len(extraction.items)}, "
+                                f"rules items: {len(rules_extraction.items)}"
+                            ),
+                        }
+                    )
+            except Exception as e:
+                logger.debug("Count cross-check skipped due to error: %s", e)
 
         page.extraction = extraction.model_dump()
         page.page_type = extraction.page_type
@@ -271,57 +317,148 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         pages_lines = [p.raw_text.splitlines() if p.raw_text else [] for p in pages]
         repeated_headers = find_repeated_header_footers(pages_lines)
 
-        # Idempotently recreate questions
-        session.execute(delete(Question).where(Question.document_id == doc_uuid))
-
-        sequence_counter = 1
+        # Prepare input for stitcher
+        pages_input: list[PageExtractionInput] = []
         for p in pages:
-            if not p.extraction or "items" not in p.extraction:
-                continue
-
-            for item in p.extraction["items"]:
-                cleaned_text = "\n".join(
-                    clean_page_lines(item["text"].splitlines(), repeated_headers)
-                ).strip()
-                if not cleaned_text:
-                    continue
-
-                q = Question(
-                    document_id=doc.id,
-                    sequence=sequence_counter,
-                    number_raw=item.get("number_raw"),
-                    number_norm=item.get("number_norm"),
-                    number_inferred=False,
-                    section=p.section_heading,
-                    type=item.get("question_type", "unknown"),
-                    text=cleaned_text,
-                    options=item.get("options", []),
-                    source_pages=[p.page_no],
-                    extraction_method=settings.extractor,
-                    ocr_confidence=p.ocr_mean_conf,
-                    confidence=item.get("self_confidence", 0.90),
-                    status="extracted",
-                    flags=[],
+            if p.extraction:
+                p_ext = PageExtraction.model_validate(p.extraction)
+                for item in p_ext.items:
+                    cleaned_lines = clean_page_lines(item.text.splitlines(), repeated_headers)
+                    item.text = "\n".join(cleaned_lines).strip()
+                pages_input.append(
+                    PageExtractionInput(
+                        page_no=p.page_no,
+                        page_type=p.page_type or "questions",
+                        section_heading=p.section_heading,
+                        ocr_confidence=p.ocr_mean_conf,
+                        text_source=p.text_source or "text_layer",
+                        extraction=p_ext,
+                    )
                 )
 
-                if item.get("inline_answer_raw"):
-                    q.answer_status = "matched"
-                    q.answer_raw = item["inline_answer_raw"]
-                    q.answer_value = [item["inline_answer_raw"].upper()]
-                    q.answer_source = {
-                        "kind": "inline",
-                        "page": p.page_no,
-                        "document_id": str(doc.id),
-                    }
+        stitched_questions = stitch_document_extractions(pages_input)
 
-                session.add(q)
-                sequence_counter += 1
+        # Idempotently delete previous warnings and questions
+        session.execute(delete(Warning).where(Warning.document_id == doc_uuid))
+        session.execute(delete(Question).where(Question.document_id == doc_uuid))
+
+        storage = get_storage()
+        for q_data in stitched_questions:
+            q_id = uuid.uuid4()
+            first_page = q_data.source_pages[0] if q_data.source_pages else 1
+            page_rec = next((p for p in pages if p.page_no == first_page), None)
+            page_img = (
+                storage.get_bytes_sync(page_rec.image_key)
+                if (page_rec and page_rec.image_key)
+                else None
+            )
+
+            assets_data, fig_flags = process_question_figures(
+                question_id=q_id,
+                owner_id=doc.owner_id,
+                page_no=first_page,
+                figures=q_data.figures,
+                table_markdown=q_data.table_markdown,
+                page_image_bytes=page_img,
+                storage=storage,
+            )
+            for ff in fig_flags:
+                if ff not in q_data.flags:
+                    q_data.flags.append(ff)
+
+            # Format structured flags for Question.flags and create Warning rows
+            formatted_flags = []
+            critical_flags = {
+                "MISSING_TEXT",
+                "MCQ_OPTIONS_LT_2",
+                "LOW_GROUNDING",
+                "ORPHAN_FRAGMENT",
+                "ANSWER_OUT_OF_RANGE",
+            }
+            info_flags = {"CROSS_PAGE_STITCHED"}
+
+            for flag_code in q_data.flags:
+                if flag_code in critical_flags:
+                    sev = "critical"
+                elif flag_code in info_flags:
+                    sev = "info"
+                else:
+                    sev = "warning"
+
+                formatted_flags.append(
+                    {
+                        "code": flag_code,
+                        "severity": sev,
+                        "message": f"Quality flag: {flag_code}",
+                    }
+                )
+
+                session.add(
+                    Warning(
+                        document_id=doc.id,
+                        question_id=q_id,
+                        page_no=first_page,
+                        code=flag_code,
+                        severity=sev,
+                        message=f"Quality flag {flag_code} detected on question {q_data.sequence}",
+                        details={"sequence": q_data.sequence, "number": q_data.number_raw},
+                    )
+                )
+
+            for asset in assets_data:
+                session.add(
+                    QuestionAsset(
+                        id=asset["id"],
+                        question_id=q_id,
+                        kind=asset["kind"],
+                        page_no=asset["page_no"],
+                        bbox=asset["bbox"],
+                        storage_key=asset["storage_key"],
+                        table_markdown=asset["table_markdown"],
+                        caption=asset["caption"],
+                    )
+                )
+
+            q = Question(
+                id=q_id,
+                document_id=doc.id,
+                sequence=q_data.sequence,
+                number_raw=q_data.number_raw,
+                number_norm=q_data.number_norm,
+                number_inferred=q_data.number_inferred,
+                section=q_data.section,
+                type=q_data.type,
+                text=q_data.text,
+                options=[opt.model_dump() for opt in q_data.options],
+                source_pages=q_data.source_pages,
+                source_bboxes=q_data.source_bboxes,
+                extraction_method=settings.extractor,
+                ocr_confidence=q_data.ocr_confidence,
+                grounding_score=q_data.grounding_score,
+                llm_self_confidence=q_data.llm_self_confidence,
+                confidence=q_data.confidence,
+                status=q_data.status,
+                flags=formatted_flags,
+            )
+
+            if q_data.inline_answer_raw:
+                q.answer_status = "matched"
+                q.answer_raw = q_data.inline_answer_raw
+                q.answer_value = normalize_answer_value(q_data.inline_answer_raw)
+                q.answer_source = {
+                    "kind": "inline",
+                    "page": first_page,
+                    "document_id": str(doc.id),
+                }
+
+            session.add(q)
 
         doc.status = "completed"
         doc.stage = "finalize"
         doc.progress_pct = 100
         doc.completed_at = datetime.now(UTC)
 
+        q_count = len(stitched_questions)
         session.add(
             ProcessingEvent(
                 document_id=doc.id,
@@ -330,7 +467,7 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
                 attempt=self.request.retries + 1,
                 started_at=datetime.now(UTC),
                 finished_at=datetime.now(UTC),
-                meta={"task_id": self.request.id, "questions_count": sequence_counter - 1},
+                meta={"task_id": self.request.id, "questions_count": q_count},
             )
         )
         session.commit()
@@ -338,9 +475,9 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         logger.info(
             "Document %s finalized: %d questions extracted",
             document_id_str,
-            sequence_counter - 1,
+            q_count,
         )
-        return {"status": "completed", "questions_count": sequence_counter - 1}
+        return {"status": "completed", "questions_count": q_count}
     except Exception as exc:
         session.rollback()
         logger.exception("Error finalizing document %s: %s", document_id_str, exc)

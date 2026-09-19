@@ -67,7 +67,7 @@ class Settings(BaseSettings):
         default="hybrid", alias="EXTRACTOR"
     )
     gemini_api_key: SecretStr | None = Field(default=None, alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-3.6-flash", alias="GEMINI_MODEL")
     llm_timeout_s: int = Field(default=30, alias="LLM_TIMEOUT_S")
     llm_max_concurrency: int = Field(default=5, alias="LLM_MAX_CONCURRENCY")
     llm_send_image: Literal["auto", "always", "never"] = Field(

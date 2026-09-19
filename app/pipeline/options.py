@@ -93,3 +93,16 @@ def parse_inline_options(line: str) -> list[OptionItem]:
             )
         )
     return items
+
+
+def normalize_answer_value(raw: str) -> list[str]:
+    """Extracts and normalizes answer value tokens (e.g. 'Ans: (b)' -> ['B'])."""
+    clean = re.sub(
+        r"^(?:ans(?:wer)?|option|correct)?[:\s\-\.]*", "", raw.strip(), flags=re.I
+    ).strip()
+    m = re.search(r"[\(\[]?([A-Za-z0-9]+)[\)\]]?", clean)
+    if m:
+        token = m.group(1)
+        norm = normalize_option_label(token)
+        return [norm]
+    return [clean.upper()] if clean else []
