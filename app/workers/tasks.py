@@ -7,13 +7,21 @@ from sqlalchemy import delete, func, select, update
 
 from app.config import get_settings
 from app.core.storage import get_storage
+from app.db.models.answer_key import AnswerKeyEntry
 from app.db.models.document import Document
+from app.db.models.document_link import DocumentLink
 from app.db.models.page import Page
 from app.db.models.processing_event import ProcessingEvent
 from app.db.models.question import Question
 from app.db.models.question_asset import QuestionAsset
 from app.db.models.warning import Warning
 from app.db.session import get_sync_db
+from app.pipeline.answer_key.detect import detect_document_role, is_answer_key_page
+from app.pipeline.answer_key.match import match_question_answers
+from app.pipeline.answer_key.parse import (
+    merge_llm_answer_key_entries,
+    parse_answer_key_text,
+)
 from app.pipeline.extractors.base import Extractor
 from app.pipeline.extractors.gemini import GeminiExtractor
 from app.pipeline.extractors.mock import MockExtractor
@@ -24,7 +32,6 @@ from app.pipeline.grounding import check_count_mismatch, verify_item_grounding
 from app.pipeline.headers_footers import clean_page_lines, find_repeated_header_footers
 from app.pipeline.ingest import ingest_document
 from app.pipeline.ocr import run_ocr
-from app.pipeline.options import normalize_answer_value
 from app.pipeline.preprocess import preprocess_page_image
 from app.pipeline.stitcher import PageExtractionInput, stitch_document_extractions
 from app.workers.celery_app import celery
@@ -173,6 +180,9 @@ def process_page(self: Any, document_id_str: str, page_no: int) -> dict[str, Any
             text_source = "ocr"
             page.ocr_used = True
             page.ocr_mean_conf = ocr_conf
+            if not page_text.strip() and page.raw_text and page.raw_text.strip():
+                page_text = page.raw_text
+                text_source = "text_layer"
             page.raw_text = page_text
 
         # Fetch previous page text for continuity context
@@ -338,13 +348,143 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
 
         stitched_questions = stitch_document_extractions(pages_input)
 
+        # 1. Extract and persist answer key entries from detected answer key pages
+        session.execute(delete(AnswerKeyEntry).where(AnswerKeyEntry.document_id == doc_uuid))
+        parsed_entries = []
+        for p in pages:
+            if (
+                is_answer_key_page(p.page_type, p.raw_text or "", p.section_heading)
+                or doc.role_hint == "answer_key"
+            ):
+                det_entries = parse_answer_key_text(
+                    p.raw_text or "",
+                    page_no=p.page_no,
+                    initial_section=p.section_heading,
+                )
+                llm_raw_entries = []
+                if p.extraction and isinstance(p.extraction, dict):
+                    llm_raw_entries = p.extraction.get("answer_key_entries", [])
+                merged_entries = merge_llm_answer_key_entries(
+                    det_entries, llm_raw_entries, page_no=p.page_no
+                )
+                parsed_entries.extend(merged_entries)
+
+        # 2. Detect and update document role
+        doc.detected_role = detect_document_role(
+            page_types=[p.page_type for p in pages],
+            questions_count=len(stitched_questions),
+            answer_keys_count=len(parsed_entries),
+            role_hint=doc.role_hint,
+        )
+
+        saved_entries: list[AnswerKeyEntry] = []
+        for pe in parsed_entries:
+            ake = AnswerKeyEntry(
+                id=uuid.uuid4(),
+                document_id=doc_uuid,
+                page_no=pe.page_no,
+                section=pe.section,
+                number_raw=pe.number_raw,
+                number_norm=pe.number_norm,
+                answer_raw=pe.answer_raw,
+                answer_value=pe.answer_value,
+                parse_confidence=pe.parse_confidence,
+                match_status="unmatched",
+            )
+            session.add(ake)
+            saved_entries.append(ake)
+        session.flush()
+
+        # 3. Load linked answer key entries if linked document exists
+        links = (
+            session.execute(
+                select(DocumentLink).where(
+                    (DocumentLink.from_document_id == doc_uuid)
+                    | (DocumentLink.to_document_id == doc_uuid)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        linked_key_doc_ids: set[uuid.UUID] = set()
+        for lnk in links:
+            if lnk.relation == "answer_key_for":
+                if lnk.to_document_id == doc_uuid:
+                    linked_key_doc_ids.add(lnk.from_document_id)
+                elif lnk.from_document_id == doc_uuid:
+                    linked_key_doc_ids.add(lnk.to_document_id)
+
+        linked_entries: list[AnswerKeyEntry] = []
+        if linked_key_doc_ids:
+            linked_entries = list(
+                session.execute(
+                    select(AnswerKeyEntry).where(AnswerKeyEntry.document_id.in_(linked_key_doc_ids))
+                )
+                .scalars()
+                .all()
+            )
+
+        # 4. Prepare question payloads for matching
+        q_ids = [uuid.uuid4() for _ in stitched_questions]
+        questions_payload = [
+            {
+                "id": q_ids[idx],
+                "number_norm": q_data.number_norm,
+                "section": q_data.section,
+                "options": [opt.model_dump() for opt in q_data.options],
+                "inline_answer_raw": q_data.inline_answer_raw,
+                "source_pages": q_data.source_pages,
+            }
+            for idx, q_data in enumerate(stitched_questions)
+        ]
+        same_doc_payload = [
+            {
+                "id": e.id,
+                "document_id": e.document_id,
+                "page_no": e.page_no,
+                "section": e.section,
+                "number_norm": e.number_norm,
+                "answer_raw": e.answer_raw,
+                "answer_value": e.answer_value,
+                "parse_confidence": e.parse_confidence,
+            }
+            for e in saved_entries
+        ]
+        linked_doc_payload = [
+            {
+                "id": e.id,
+                "document_id": e.document_id,
+                "page_no": e.page_no,
+                "section": e.section,
+                "number_norm": e.number_norm,
+                "answer_raw": e.answer_raw,
+                "answer_value": e.answer_value,
+                "parse_confidence": e.parse_confidence,
+            }
+            for e in linked_entries
+        ]
+
+        match_results, entry_statuses = match_question_answers(
+            questions=questions_payload,
+            document_id=doc_uuid,
+            same_doc_entries=same_doc_payload,
+            linked_doc_entries=linked_doc_payload,
+        )
+        match_map = {r.question_id: r for r in match_results}
+
         # Idempotently delete previous warnings and questions
         session.execute(delete(Warning).where(Warning.document_id == doc_uuid))
         session.execute(delete(Question).where(Question.document_id == doc_uuid))
 
         storage = get_storage()
-        for q_data in stitched_questions:
-            q_id = uuid.uuid4()
+        for idx, q_data in enumerate(stitched_questions):
+            q_id = q_ids[idx]
+            match_res = match_map.get(q_id)
+            if match_res:
+                for flg in match_res.flags_to_add:
+                    if flg not in q_data.flags:
+                        q_data.flags.append(flg)
+
             first_page = q_data.source_pages[0] if q_data.source_pages else 1
             page_rec = next((p for p in pages if p.page_no == first_page), None)
             page_img = (
@@ -439,19 +579,22 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
                 confidence=q_data.confidence,
                 status=q_data.status,
                 flags=formatted_flags,
+                answer_status=match_res.answer_status if match_res else "not_found",
+                answer_value=match_res.answer_value if match_res else [],
+                answer_raw=match_res.answer_raw if match_res else None,
+                answer_source=match_res.answer_source if match_res else {},
+                answer_confidence=match_res.answer_confidence if match_res else None,
             )
 
-            if q_data.inline_answer_raw:
-                q.answer_status = "matched"
-                q.answer_raw = q_data.inline_answer_raw
-                q.answer_value = normalize_answer_value(q_data.inline_answer_raw)
-                q.answer_source = {
-                    "kind": "inline",
-                    "page": first_page,
-                    "document_id": str(doc.id),
-                }
-
             session.add(q)
+
+        # Update entry statuses and matched question links
+        for e in saved_entries:
+            if e.id in entry_statuses:
+                e.match_status = entry_statuses[e.id]
+        for e in linked_entries:
+            if e.id in entry_statuses:
+                e.match_status = entry_statuses[e.id]
 
         doc.status = "completed"
         doc.stage = "finalize"
@@ -472,10 +615,19 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         )
         session.commit()
 
+        # Check if this document is linked as an answer_key for other documents
+        for lnk in links:
+            if lnk.relation == "answer_key_for":
+                target_doc_id = (
+                    lnk.to_document_id if lnk.from_document_id == doc_uuid else lnk.from_document_id
+                )
+                reconcile_document_task.delay(str(target_doc_id))
+
         logger.info(
-            "Document %s finalized: %d questions extracted",
+            "Document %s finalized: %d questions extracted, role: %s",
             document_id_str,
             q_count,
+            doc.detected_role,
         )
         return {"status": "completed", "questions_count": q_count}
     except Exception as exc:
@@ -493,5 +645,152 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         except Exception:
             session.rollback()
         raise
+    finally:
+        session.close()
+
+
+@celery.task(name="app.workers.tasks.reconcile_document_task", acks_late=True)
+def reconcile_document_task(document_id_str: str) -> dict[str, Any]:
+    """Sync celery task for running reconcile on a question document with linked answer keys."""
+    doc_uuid = uuid.UUID(document_id_str)
+    session = get_sync_db()
+
+    try:
+        doc = session.execute(select(Document).where(Document.id == doc_uuid)).scalar_one_or_none()
+        if not doc:
+            return {"status": "not_found", "document_id": document_id_str}
+
+        links = (
+            session.execute(
+                select(DocumentLink).where(
+                    (DocumentLink.from_document_id == doc_uuid)
+                    | (DocumentLink.to_document_id == doc_uuid)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        linked_key_doc_ids: set[uuid.UUID] = set()
+        for lnk in links:
+            if lnk.relation == "answer_key_for":
+                if lnk.to_document_id == doc_uuid:
+                    linked_key_doc_ids.add(lnk.from_document_id)
+                elif lnk.from_document_id == doc_uuid:
+                    linked_key_doc_ids.add(lnk.to_document_id)
+
+        linked_entries: list[AnswerKeyEntry] = []
+        if linked_key_doc_ids:
+            linked_entries = list(
+                session.execute(
+                    select(AnswerKeyEntry).where(AnswerKeyEntry.document_id.in_(linked_key_doc_ids))
+                )
+                .scalars()
+                .all()
+            )
+
+        same_doc_entries = list(
+            session.execute(select(AnswerKeyEntry).where(AnswerKeyEntry.document_id == doc_uuid))
+            .scalars()
+            .all()
+        )
+
+        questions = list(
+            session.execute(
+                select(Question)
+                .where(Question.document_id == doc_uuid)
+                .order_by(Question.sequence.asc())
+            )
+            .scalars()
+            .all()
+        )
+
+        questions_payload = [
+            {
+                "id": q.id,
+                "number_norm": q.number_norm,
+                "section": q.section,
+                "options": q.options,
+                "inline_answer_raw": (
+                    q.answer_raw
+                    if (q.answer_source and q.answer_source.get("kind") == "inline")
+                    else None
+                ),
+                "source_pages": q.source_pages,
+            }
+            for q in questions
+        ]
+        same_doc_payload = [
+            {
+                "id": e.id,
+                "document_id": e.document_id,
+                "page_no": e.page_no,
+                "section": e.section,
+                "number_norm": e.number_norm,
+                "answer_raw": e.answer_raw,
+                "answer_value": e.answer_value,
+                "parse_confidence": e.parse_confidence,
+            }
+            for e in same_doc_entries
+        ]
+        linked_doc_payload = [
+            {
+                "id": e.id,
+                "document_id": e.document_id,
+                "page_no": e.page_no,
+                "section": e.section,
+                "number_norm": e.number_norm,
+                "answer_raw": e.answer_raw,
+                "answer_value": e.answer_value,
+                "parse_confidence": e.parse_confidence,
+            }
+            for e in linked_entries
+        ]
+
+        match_results, entry_statuses = match_question_answers(
+            questions=questions_payload,
+            document_id=doc_uuid,
+            same_doc_entries=same_doc_payload,
+            linked_doc_entries=linked_doc_payload,
+        )
+        match_map = {r.question_id: r for r in match_results}
+        matched_count = 0
+
+        for q in questions:
+            res = match_map.get(q.id)
+            if not res:
+                continue
+
+            q.answer_status = res.answer_status
+            q.answer_value = res.answer_value
+            q.answer_raw = res.answer_raw
+            q.answer_source = res.answer_source
+            q.answer_confidence = res.answer_confidence
+
+            if res.answer_status == "matched":
+                matched_count += 1
+
+            existing_codes = {f.get("code") for f in (q.flags or []) if isinstance(f, dict)}
+            for flg in res.flags_to_add:
+                if flg not in existing_codes:
+                    sev = "critical" if flg == "ANSWER_OUT_OF_RANGE" else "warning"
+                    q.flags.append({"code": flg, "severity": sev, "message": f"Answer flag: {flg}"})
+
+        for e in list(same_doc_entries) + list(linked_entries):
+            if e.id in entry_statuses:
+                e.match_status = entry_statuses[e.id]
+
+        session.commit()
+        logger.info(
+            "Document %s reconciled: %d/%d questions matched",
+            document_id_str,
+            matched_count,
+            len(questions),
+        )
+        return {
+            "status": "reconciled",
+            "document_id": document_id_str,
+            "questions_matched": matched_count,
+            "questions_total": len(questions),
+        }
     finally:
         session.close()

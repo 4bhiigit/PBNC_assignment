@@ -6,9 +6,11 @@ from typing import cast
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.answer_keys import router as answer_keys_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.health import router as health_router
+from app.api.v1.links import router as links_router
 from app.api.v1.questions import router as questions_router
 from app.config import get_settings
 from app.errors import register_error_handlers
@@ -74,3 +76,5 @@ app.include_router(health_router)
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(questions_router, prefix="/api/v1")
+app.include_router(links_router, prefix="/api/v1")
+app.include_router(answer_keys_router, prefix="/api/v1")
