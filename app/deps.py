@@ -5,9 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_access_token
+from app.db.models.document import Document
 from app.db.models.user import User
+from app.db.repositories.document_repo import get_document_by_id
 from app.db.session import get_db
-from app.errors import ForbiddenException, UnauthenticatedException
+from app.errors import ForbiddenException, NotFoundException, UnauthenticatedException
 
 
 async def get_current_user(
@@ -43,3 +45,19 @@ async def require_admin(
     if current_user.role != "admin":
         raise ForbiddenException("Administrator privileges required")
     return current_user
+
+
+async def get_owned_document(
+    id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Document:
+    doc = await get_document_by_id(db, id)
+    if not doc:
+        raise NotFoundException("Document not found")
+
+    # Strict owner-scoping: foreign IDs return 404 Not Found to prevent enumeration
+    if current_user.role != "admin" and doc.owner_id != current_user.id:
+        raise NotFoundException("Document not found")
+
+    return doc

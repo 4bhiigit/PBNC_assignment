@@ -129,11 +129,16 @@ class PdfEncryptedException(AppException):
 
 
 class TooManyPagesException(AppException):
-    def __init__(self, message: str = "Document page count exceeds maximum limit"):
+    def __init__(
+        self,
+        message: str = "Document page count exceeds maximum limit",
+        details: dict[str, Any] | None = None,
+    ):
         super().__init__(
             code="TOO_MANY_PAGES",
             message=message,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            details=details,
         )
 
 

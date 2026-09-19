@@ -23,14 +23,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] Global error envelope and `/health`, `/ready` endpoints
   - [x] Phase 1 test suite & verification (8 passed in 2.75s, ruff clean, mypy clean)
 
-- [ ] **Phase 2: Upload, Security, Storage, Status, Authz**
-  - [ ] `StorageBackend` abstraction + `LocalStorage` (owner-sharded, uuid keys)
-  - [ ] `POST /api/v1/documents` streaming upload & deep security validation
-  - [ ] Shared `get_owned_document` dependency (foreign ID -> 404)
-  - [ ] Redis upload rate limiting per user
-  - [ ] Document lifecycle endpoints (GET list, GET by ID, GET status, DELETE)
-  - [ ] Celery app configuration (queues: ingest, pages, finalize) & stub async task
-  - [ ] Phase 2 test suite & verification
+- [x] **Phase 2: Upload, Security, Storage, Status, Authz**
+  - [x] `StorageBackend` abstraction + `LocalStorage` (owner-sharded, uuid keys)
+  - [x] `POST /api/v1/documents` streaming upload & deep security validation
+  - [x] Shared `get_owned_document` dependency (foreign ID -> 404)
+  - [x] Redis upload rate limiting per user
+  - [x] Document lifecycle endpoints (GET list, GET by ID, GET status, DELETE)
+  - [x] Celery app configuration (queues: ingest, pages, finalize) & stub async task
+  - [x] Phase 2 test suite & verification (23 passed in 11.58s, ruff clean, mypy clean)
 
 - [ ] **Phase 3: Ingest + OCR + Rules Parser (Offline End-to-End Slice)**
   - [ ] `pipeline/ingest.py`, `page_analysis.py` (text layer vs scanned)
@@ -100,12 +100,12 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 1 Completed -> Phase 2 (Upload, Security, Storage, Status, Authz)
-- **Active Task:** Phase 2 implementation
+- **Current Phase:** Phase 2 Completed -> Ready for Phase 3 (Ingest + OCR + Rules Parser)
+- **Active Task:** Phase 3 implementation
 - **Verification:**
-  - Tests: `uv run pytest -v` (8 passed in 2.75s)
+  - Tests: `uv run pytest -v` (23 passed in 11.58s across auth, upload, validation, storage, and cross-tenant authz)
   - Linter: `uv run ruff check app tests` (0 errors)
-  - Formatter: `uv run ruff format --check app tests` (35 files formatted)
-  - Typecheck: `uv run mypy app` (0 issues in 30 source files)
-  - Database: `uv run alembic upgrade head --sql` (successful SQL generation, dumped to `docs/schema.sql`)
+  - Formatter: `uv run ruff format --check app tests` (47 files formatted)
+  - Typecheck: `uv run mypy app` (0 issues in 41 source files)
+  - Architecture: `docs/DECISIONS.md` ADRs added for async 202, 404 security, encrypted PDF rejection, and storage sharding
 - **Blockers / Approvals Needed:** None
