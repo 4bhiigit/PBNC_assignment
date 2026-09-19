@@ -58,3 +58,12 @@ def match_section_heading(line: str) -> str | None:
     if match and len(clean) < 100:
         return clean
     return None
+
+
+def normalize_number_string(raw: str) -> str | None:
+    """Extracts normalized digit string from raw question numbering."""
+    clean = raw.strip()
+    digits = re.findall(r"\d+", clean)
+    if digits:
+        return str(int(digits[0]))
+    return None

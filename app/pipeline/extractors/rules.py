@@ -1,5 +1,6 @@
 import re
 
+from app.pipeline.answer_key.detect import is_answer_key_heading
 from app.pipeline.extractors.base import Extractor
 from app.pipeline.extractors.schemas import (
     AnswerKeyItem,
@@ -32,7 +33,10 @@ class RulesExtractor(Extractor):
 
         # First, check if the page is primarily an answer key
         answer_key_entries = self._try_parse_answer_key_page(raw_lines)
-        if len(answer_key_entries) >= 3 and len(answer_key_entries) >= len(raw_lines) * 0.5:
+        has_key_heading = any(is_answer_key_heading(line) for line in raw_lines[:5])
+        if (has_key_heading and answer_key_entries) or (
+            len(answer_key_entries) >= 3 and len(answer_key_entries) >= len(raw_lines) * 0.5
+        ):
             return PageExtraction(
                 page_type="answer_key",
                 items=[],
