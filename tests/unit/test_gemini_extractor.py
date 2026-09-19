@@ -1,7 +1,10 @@
 import uuid
+from unittest.mock import MagicMock
+
+import pytest
 
 from app.pipeline.extractors.gemini import GeminiExtractor
-from app.pipeline.extractors.provider import LLMProvider
+from app.pipeline.extractors.provider import GeminiProvider, LLMProvider
 from app.pipeline.extractors.schemas import (
     ExtractedItem,
     ExtractedOption,
@@ -112,3 +115,63 @@ def test_gemini_extractor_falls_back_to_rules() -> None:
     assert len(result.items) == 1
     assert "LLM_FALLBACK_USED" in result.flags
     assert "LLM_FALLBACK_USED" in result.items[0].flags
+
+
+def test_gemini_provider_empty_key_rejected() -> None:
+    with pytest.raises(ValueError, match="Gemini API key must not be empty"):
+        GeminiProvider(api_key="   ")
+
+
+def test_gemini_provider_parses_parsed_object() -> None:
+    provider = GeminiProvider(api_key="test-key")
+    mock_extraction = PageExtraction(page_type="questions", items=[])
+    mock_resp = MagicMock()
+    mock_resp.parsed = mock_extraction
+    provider.client = MagicMock()
+    provider.client.models.generate_content.return_value = mock_resp
+
+    result = provider.generate_extraction("prompt", "sys")
+    assert result.page_type == "questions"
+
+
+def test_gemini_provider_parses_dict_parsed_object() -> None:
+    provider = GeminiProvider(api_key="test-key")
+    mock_resp = MagicMock()
+    mock_resp.parsed = {"page_type": "questions", "items": [{"number_raw": "1", "text": "Q1"}]}
+    provider.client = MagicMock()
+    provider.client.models.generate_content.return_value = mock_resp
+
+    result = provider.generate_extraction("prompt", "sys")
+    assert result.page_type == "questions"
+    assert len(result.items) == 1
+    assert result.items[0].text == "Q1"
+
+
+def test_gemini_provider_parses_markdown_json() -> None:
+    provider = GeminiProvider(api_key="test-key")
+    mock_resp = MagicMock()
+    mock_resp.parsed = None
+    mock_resp.text = (
+        '```json\n{"page_type": "questions", "items": [{"number_raw": "2", "text": "Q2"}]}\n```'
+    )
+    provider.client = MagicMock()
+    provider.client.models.generate_content.return_value = mock_resp
+
+    result = provider.generate_extraction("prompt", "sys")
+    assert result.page_type == "questions"
+    assert result.items[0].text == "Q2"
+
+
+def test_gemini_provider_blocked_finish_reason() -> None:
+    provider = GeminiProvider(api_key="test-key")
+    mock_resp = MagicMock()
+    mock_resp.parsed = None
+    mock_resp.text = None
+    candidate = MagicMock()
+    candidate.finish_reason = "SAFETY"
+    mock_resp.candidates = [candidate]
+    provider.client = MagicMock()
+    provider.client.models.generate_content.return_value = mock_resp
+
+    with pytest.raises(ValueError, match="finish reason: SAFETY"):
+        provider.generate_extraction("prompt", "sys")

@@ -20,14 +20,7 @@ def crop_image_bbox(
 
     try:
         ymin, xmin, ymax, xmax = bbox_norm[:4]
-        if (
-            ymin >= ymax
-            or xmin >= xmax
-            or ymax <= 0.0
-            or xmax <= 0.0
-            or ymin >= 1.0
-            or xmin >= 1.0
-        ):
+        if ymin >= ymax or xmin >= xmax or ymax <= 0.0 or xmax <= 0.0 or ymin >= 1.0 or xmin >= 1.0:
             return None
 
         with Image.open(io.BytesIO(image_bytes)) as img:

@@ -1,4 +1,5 @@
 import logging
+import re
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -28,8 +29,16 @@ class LLMProvider(ABC):
 class GeminiProvider(LLMProvider):
     """Google Gemini provider using official google-genai SDK with structured output."""
 
-    def __init__(self, api_key: str, model: str = "gemini-3.6-flash", timeout_s: int = 30) -> None:
-        self.client = genai.Client(api_key=api_key)
+    def __init__(
+        self,
+        api_key: str,
+        model: str = "gemini-3.6-flash",
+        timeout_s: int = 30,
+    ) -> None:
+        clean_key = api_key.strip()
+        if not clean_key:
+            raise ValueError("Gemini API key must not be empty")
+        self.client = genai.Client(api_key=clean_key)
         self.model = model
         self.timeout_s = timeout_s
 
@@ -60,10 +69,27 @@ class GeminiProvider(LLMProvider):
             config=config,
         )
 
-        if response.parsed is not None and isinstance(response.parsed, PageExtraction):
-            return response.parsed
+        if response.parsed is not None:
+            if isinstance(response.parsed, PageExtraction):
+                return response.parsed
+            if isinstance(response.parsed, dict):
+                return PageExtraction.model_validate(response.parsed)
 
         if response.text:
-            return PageExtraction.model_validate_json(response.text)
+            text = response.text.strip()
+            if "```" in text:
+                match = re.search(
+                    r"```(?:json)?\s*(.*?)\s*```", text, flags=re.DOTALL | re.IGNORECASE
+                )
+                if match:
+                    text = match.group(1).strip()
+                else:
+                    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+                    text = re.sub(r"\s*```$", "", text)
+            return PageExtraction.model_validate_json(text)
+
+        if response.candidates and response.candidates[0].finish_reason:
+            reason = response.candidates[0].finish_reason
+            raise ValueError(f"Gemini generation blocked or incomplete; finish reason: {reason}")
 
         raise ValueError("Gemini returned an empty response without text or parsed content")

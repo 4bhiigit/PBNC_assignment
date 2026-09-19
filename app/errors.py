@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request, status
@@ -6,6 +7,8 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.logging import request_id_ctx
+
+logger = logging.getLogger(__name__)
 
 
 class AppException(Exception):
@@ -26,7 +29,11 @@ class AppException(Exception):
 
 
 class NotFoundException(AppException):
-    def __init__(self, message: str = "Resource not found", details: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        message: str = "Resource not found",
+        details: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__(
             code="NOT_FOUND",
             message=message,
@@ -36,7 +43,7 @@ class NotFoundException(AppException):
 
 
 class UnauthenticatedException(AppException):
-    def __init__(self, message: str = "Authentication credentials missing or invalid"):
+    def __init__(self, message: str = "Authentication credentials missing or invalid") -> None:
         super().__init__(
             code="UNAUTHENTICATED",
             message=message,
@@ -45,7 +52,7 @@ class UnauthenticatedException(AppException):
 
 
 class ForbiddenException(AppException):
-    def __init__(self, message: str = "Insufficient permissions"):
+    def __init__(self, message: str = "Insufficient permissions") -> None:
         super().__init__(
             code="FORBIDDEN",
             message=message,
@@ -53,8 +60,22 @@ class ForbiddenException(AppException):
         )
 
 
+class SecurityError(AppException):
+    def __init__(
+        self,
+        message: str = "Access denied: security violation detected",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="FORBIDDEN",
+            message=message,
+            status_code=status.HTTP_403_FORBIDDEN,
+            details=details,
+        )
+
+
 class ConflictException(AppException):
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(
             code="CONFLICT",
             message=message,
@@ -68,7 +89,7 @@ class DocumentNotReadyException(AppException):
         self,
         message: str = "Document is still processing",
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             code="DOCUMENT_NOT_READY",
             message=message,
@@ -82,7 +103,7 @@ class FileTooLargeException(AppException):
         self,
         message: str = "Uploaded file exceeds size limit",
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             code="FILE_TOO_LARGE",
             message=message,
@@ -96,7 +117,7 @@ class UnsupportedMediaTypeException(AppException):
         self,
         message: str = "Unsupported media type",
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             code="UNSUPPORTED_MEDIA_TYPE",
             message=message,
@@ -110,7 +131,7 @@ class MalformedFileException(AppException):
         self,
         message: str = "File is corrupt or cannot be parsed",
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             code="MALFORMED_FILE",
             message=message,
@@ -120,7 +141,10 @@ class MalformedFileException(AppException):
 
 
 class PdfEncryptedException(AppException):
-    def __init__(self, message: str = "Encrypted or password-protected PDFs are not supported"):
+    def __init__(
+        self,
+        message: str = "Encrypted or password-protected PDFs are not supported",
+    ) -> None:
         super().__init__(
             code="PDF_ENCRYPTED",
             message=message,
@@ -133,7 +157,7 @@ class TooManyPagesException(AppException):
         self,
         message: str = "Document page count exceeds maximum limit",
         details: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         super().__init__(
             code="TOO_MANY_PAGES",
             message=message,
@@ -142,8 +166,22 @@ class TooManyPagesException(AppException):
         )
 
 
+class ValidationException(AppException):
+    def __init__(
+        self,
+        message: str = "Request validation failed",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="VALIDATION_ERROR",
+            message=message,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            details=details,
+        )
+
+
 class RateLimitedException(AppException):
-    def __init__(self, message: str = "Rate limit exceeded"):
+    def __init__(self, message: str = "Rate limit exceeded") -> None:
         super().__init__(
             code="RATE_LIMITED",
             message=message,
@@ -152,7 +190,7 @@ class RateLimitedException(AppException):
 
 
 class QueueUnavailableException(AppException):
-    def __init__(self, message: str = "Processing queue is currently unavailable"):
+    def __init__(self, message: str = "Processing queue is currently unavailable") -> None:
         super().__init__(
             code="QUEUE_UNAVAILABLE",
             message=message,
@@ -213,14 +251,26 @@ def register_error_handlers(app: FastAPI) -> None:
             status.HTTP_503_SERVICE_UNAVAILABLE: "QUEUE_UNAVAILABLE",
         }
         code = code_map.get(exc.status_code, "HTTP_ERROR")
+
+        details: dict[str, Any] = {}
+        if isinstance(exc.detail, dict):
+            msg = str(exc.detail.get("message", "HTTP Error"))
+            raw_details = exc.detail.get("details")
+            if isinstance(raw_details, dict):
+                details = raw_details
+            code = str(exc.detail.get("code", code))
+        else:
+            msg = str(exc.detail)
+
         return JSONResponse(
             status_code=exc.status_code,
-            content=format_error_envelope(code, str(exc.detail), {}, req_id),
+            content=format_error_envelope(code, msg, details, req_id),
         )
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         req_id = getattr(request.state, "request_id", None) or request_id_ctx.get()
+        logger.exception("Unhandled server exception: %s", exc)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=format_error_envelope(

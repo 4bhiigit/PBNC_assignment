@@ -74,9 +74,7 @@ def merge_extracted_options(
         label = opt.label.upper()
         if label in existing_labels:
             new_label = (
-                chr(next_char_code)
-                if next_char_code <= ord("Z")
-                else f"OPT_{len(merged)+1}"
+                chr(next_char_code) if next_char_code <= ord("Z") else f"OPT_{len(merged)+1}"
             )
             merged.append(
                 ExtractedOption(
@@ -107,17 +105,16 @@ def is_heuristic_continuation(prev_item: ExtractedItem, curr_item: ExtractedItem
     # curr_item starts lowercase or with an option-like label
     text = curr_item.text.strip()
     starts_lower = bool(text and text[0].islower())
-    starts_with_option = (
-        bool(re.match(r"^[\(\[]?[a-dA-D1-4ivx]+[\)\.\]]", text)) or bool(curr_item.options)
+    starts_with_option = bool(re.match(r"^[\(\[]?[a-dA-D1-4ivx]+[\)\.\]]", text)) or bool(
+        curr_item.options
     )
 
     # prev_item looks unfinished: no terminal punctuation or incomplete MCQ
     prev_text = prev_item.text.strip()
-    unfinished_punct = bool(prev_text and prev_text[-1] not in ".?!:)\"")
-    incomplete_mcq = (
-        (prev_item.question_type == "mcq" or bool(prev_item.options))
-        and len(prev_item.options) < 2
-    )
+    unfinished_punct = bool(prev_text and prev_text[-1] not in '.?!:)"')
+    incomplete_mcq = (prev_item.question_type == "mcq" or bool(prev_item.options)) and len(
+        prev_item.options
+    ) < 2
 
     return (starts_lower or starts_with_option) and (unfinished_punct or incomplete_mcq)
 
@@ -132,7 +129,7 @@ def stitch_document_extractions(pages_input: list[PageExtractionInput]) -> list[
         items = p.extraction.items
 
         for idx, item in enumerate(items):
-            is_first_on_page = (idx == 0)
+            is_first_on_page = idx == 0
 
             # Check if this item continues current_q
             should_stitch = False

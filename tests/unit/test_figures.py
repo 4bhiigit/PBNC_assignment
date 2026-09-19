@@ -39,9 +39,7 @@ def test_process_question_figures_and_tables(tmp_path: Path) -> None:
     q_id = uuid.uuid4()
     owner_id = uuid.uuid4()
 
-    figures = [
-        ExtractedFigure(bbox_norm=[0.1, 0.1, 0.5, 0.5], caption="Figure 1: Circuit diagram")
-    ]
+    figures = [ExtractedFigure(bbox_norm=[0.1, 0.1, 0.5, 0.5], caption="Figure 1: Circuit diagram")]
     table_md = "| A | B |\n|---|---|\n| 1 | 2 |"
 
     assets, flags = process_question_figures(
