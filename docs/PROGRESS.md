@@ -101,16 +101,11 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 4 Completed -> Ready for Phase 5 (Answer Key & Multi-Document Links)
+- **Current Phase:** Phase 4 Completed & Error/Provider Refined -> Ready for Phase 5 (Answer Key & Multi-Document Links)
 - **Active Task:** Phase 5 planning and implementation
 - **Verification Results:**
-  - Full Test Suite: `uv run pytest -q` -> **112 passed, 5 warnings in 128.42s** (0:02:08)
-  - Live Gemini API Test (`tests/integration/test_pipeline_gemini.py`):
-    - Model: `gemini-3.6-flash`
-    - Items Extracted: 2 questions
-    - Grounding Scores: Q1=0.961, Q2=0.935 (well above 0.70 threshold)
-    - Quality Flags: `[]` (clean extraction)
-  - Linter: `uv run ruff check app tests` -> **All checks passed!**
-  - Typecheck: `uv run mypy app` -> **Success: no issues found in 64 source files**
+  - Targeted & Full Unit Suite: `uv run pytest -q` -> all tests passed with new coverage for `app/errors.py` and `GeminiProvider`
+  - Linter & Formatter: `uv run ruff check app tests` & `uv run ruff format --check app tests` -> **All checks passed!**
+  - Typecheck: `uv run mypy app tests/unit/test_errors.py tests/unit/test_gemini_extractor.py` -> **Success: no issues found in 66 source files**
   - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None
