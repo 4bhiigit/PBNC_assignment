@@ -51,13 +51,13 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] `figures.py` (crop figure/table bounding boxes, store as `question_assets`)
   - [x] Phase 4 test suite & live Gemini verification
 
-- [ ] **Phase 5: Answer Key & Multi-Document Links**
-  - [ ] `answer_key/` (detect, parse, normalize, match)
-  - [ ] Match statuses (`matched`, `not_found`, `ambiguous`, `conflict`, `invalid`)
-  - [ ] `document_links` table & relationships (`answer_key_for`, `continuation_of`, `related`)
-  - [ ] Link reconcile workflow with Redis distributed lock
-  - [ ] Answer key endpoints & summary counts
-  - [ ] Phase 5 test suite & verification
+- [x] **Phase 5: Answer Key & Multi-Document Links**
+  - [x] `answer_key/` (detect, parse, normalize, match)
+  - [x] Match statuses (`matched`, `not_found`, `ambiguous`, `conflict`, `invalid`)
+  - [x] `document_links` table & relationships (`answer_key_for`, `continuation_of`, `related`)
+  - [x] Link reconcile workflow with Redis distributed lock
+  - [x] Answer key endpoints & summary counts
+  - [x] Phase 5 test suite & verification (130 passed in 173s, ruff clean, mypy clean)
 
 - [ ] **Phase 6: Confidence, Warnings, Review, API Polish**
   - [ ] Confidence formula implementation & configurable thresholds
@@ -101,11 +101,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 4 Completed & Error/Provider Refined -> Ready for Phase 5 (Answer Key & Multi-Document Links)
-- **Active Task:** Phase 5 planning and implementation
+- **Current Phase:** Phase 5 Completed -> Ready for Phase 6 (Confidence, Warnings, Review, API Polish)
+- **Active Task:** Phase 5 verification and git commit
 - **Verification Results:**
-  - Targeted & Full Unit Suite: `uv run pytest -q` -> all tests passed with new coverage for `app/errors.py` and `GeminiProvider`
-  - Linter & Formatter: `uv run ruff check app tests` & `uv run ruff format --check app tests` -> **All checks passed!**
-  - Typecheck: `uv run mypy app tests/unit/test_errors.py tests/unit/test_gemini_extractor.py` -> **Success: no issues found in 66 source files**
+  - Full Test Suite: `uv run pytest -q` -> **130 passed, 6 warnings in 173.25s**
+  - Targeted Unit Suite: `uv run pytest tests/unit/test_answer_keys.py -v` -> **9 passed in 2.33s**
+  - Targeted Integration Suite: `uv run pytest tests/integration/test_links_and_reconcile.py -v` -> **1 passed in 7.74s**
+  - Linter: `uv run ruff check app tests` -> **All checks passed!**
+  - Typecheck: `uv run mypy app` -> **Success: no issues found in 77 source files**
   - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None
+
