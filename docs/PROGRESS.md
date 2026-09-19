@@ -6,22 +6,22 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 
 ## Phase Checklist
 
-- [ ] **Phase 0: Plan & Architecture Alignment**
+- [x] **Phase 0: Plan & Architecture Alignment**
   - [x] Review AGENTS.md, SPEC.md, START_HERE.md, PHASE_PROMPTS.md
   - [x] Draft Phase 0 Implementation Plan artifact
   - [x] Setup docs/ directory and progress tracker
-  - [ ] Awaiting user review and plan approval
+  - [x] User review and plan approval
 
-- [ ] **Phase 1: Scaffold, Docker, DB Schema, Auth**
-  - [ ] Repo structure (`app/`, `tests/`, `scripts/`, `docs/`)
-  - [ ] `pyproject.toml`, pinned dependencies, ruff & mypy setup
-  - [ ] `Dockerfile` (multi-stage, non-root, Tesseract eng+hin, libmagic) & `docker-compose.yml`
-  - [ ] `app/config.py` with `pydantic-settings` & `SecretStr`
-  - [ ] Structured JSON logging with `request_id` context
-  - [ ] SQLAlchemy 2.x async models + Alembic migrations for all SPEC §5 tables
-  - [ ] Auth endpoints (register, login with argon2 + JWT, me) & dependencies
-  - [ ] Global error envelope and `/health`, `/ready` endpoints
-  - [ ] Phase 1 test suite & verification
+- [x] **Phase 1: Scaffold, Docker, DB Schema, Auth**
+  - [x] Repo structure (`app/`, `tests/`, `scripts/`, `docs/`)
+  - [x] `pyproject.toml`, pinned dependencies, ruff & mypy setup
+  - [x] `Dockerfile` (multi-stage, non-root, Tesseract eng+hin, libmagic) & `docker-compose.yml`
+  - [x] `app/config.py` with `pydantic-settings` & `SecretStr`
+  - [x] Structured JSON logging with `request_id` context
+  - [x] SQLAlchemy 2.x async models + Alembic migrations for all SPEC §5 tables
+  - [x] Auth endpoints (register, login with argon2 + JWT, me) & dependencies
+  - [x] Global error envelope and `/health`, `/ready` endpoints
+  - [x] Phase 1 test suite & verification (8 passed in 2.75s, ruff clean, mypy clean)
 
 - [ ] **Phase 2: Upload, Security, Storage, Status, Authz**
   - [ ] `StorageBackend` abstraction + `LocalStorage` (owner-sharded, uuid keys)
@@ -100,6 +100,12 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 0 (Planning)
-- **Active Task:** Writing Implementation Plan artifact and phase roadmap
-- **Blockers / Approvals Needed:** User approval on Phase 0 Implementation Plan
+- **Current Phase:** Phase 1 Completed -> Phase 2 (Upload, Security, Storage, Status, Authz)
+- **Active Task:** Phase 2 implementation
+- **Verification:**
+  - Tests: `uv run pytest -v` (8 passed in 2.75s)
+  - Linter: `uv run ruff check app tests` (0 errors)
+  - Formatter: `uv run ruff format --check app tests` (35 files formatted)
+  - Typecheck: `uv run mypy app` (0 issues in 30 source files)
+  - Database: `uv run alembic upgrade head --sql` (successful SQL generation, dumped to `docs/schema.sql`)
+- **Blockers / Approvals Needed:** None
