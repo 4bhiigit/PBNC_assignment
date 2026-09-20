@@ -109,7 +109,7 @@ All settings are managed via environment variables and validated with `pydantic-
 - `POST /api/v1/questions/{id}/review` — Approve or reject question status.
 
 ### Answer Keys & Multi-Document Links
-- `GET /api/v1/documents/{id}/answer-keys` — List answer key entries associated with document.
+- `GET /api/v1/documents/{id}/answer-key` — List answer key entries associated with document.
 - `POST /api/v1/documents/{id}/links` — Create relationship link between documents (`answer_key_for`).
 - `POST /api/v1/documents/{id}/reconcile` — Execute answer key reconciliation across linked documents.
 
