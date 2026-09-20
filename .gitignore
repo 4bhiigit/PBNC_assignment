@@ -36,6 +36,11 @@ coverage.xml
 *.swp
 *.swo
 
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
 # OS files
 Thumbs.db
 Desktop.ini

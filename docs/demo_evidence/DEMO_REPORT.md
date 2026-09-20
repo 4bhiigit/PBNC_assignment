@@ -1,6 +1,6 @@
 # Document Intelligence Service — Live Demo Evidence Report
 
-- **Execution Timestamp:** 2026-09-20 04:23:22 UTC
+- **Execution Timestamp:** 2026-09-20 04:30:55 UTC
 - **Environment:** Local Deterministic Test Harness (SQLite + LocalStorage + Rules Engine)
 - **Test Dataset:** Standard SPEC §17 Benchmark Suite (`samples/input/`)
 
@@ -22,11 +22,11 @@ Content-Type: application/json
   "token_type": "bearer",
   "expires_in": 3600,
   "user": {
-    "id": "92832c47-a1a6-4e7e-9c8f-4ad88e345a11",
+    "id": "8faaef81-57a7-40cd-9f42-bb59968be48a",
     "email": "demo_evaluator@example.com",
     "role": "user",
     "is_active": true,
-    "created_at": "2026-09-20T04:23:23.121719"
+    "created_at": "2026-09-20T04:30:55.568261"
   }
 }
 ```
@@ -41,25 +41,25 @@ Content-Type: multipart/form-data
 **Async Response (HTTP 202 Accepted):**
 ```json
 {
-  "id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "status": "queued",
   "links": {
-    "status": "/api/v1/documents/58258c9d-f124-4bf0-b6d3-813f7f1ae493/status",
-    "self": "/api/v1/documents/58258c9d-f124-4bf0-b6d3-813f7f1ae493"
+    "status": "/api/v1/documents/13faa7d6-f7da-4fc1-9089-705553c7a2f1/status",
+    "self": "/api/v1/documents/13faa7d6-f7da-4fc1-9089-705553c7a2f1"
   }
 }
 ```
 **Final Processing Status (HTTP 200 OK):**
 ```json
 {
-  "id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "status": "completed_with_warnings",
   "stage": "finalize",
   "progress_pct": 100,
   "pages_done": 4,
   "page_count": 4,
   "error": null,
-  "updated_at": "2026-09-20T04:23:24.818583"
+  "updated_at": "2026-09-20T04:30:57.120757"
 }
 ```
 
@@ -69,8 +69,8 @@ Content-Type: multipart/form-data
 **Sample Extracted Question Schema:**
 ```json
 {
-  "id": "28180a47-1fd2-4882-a4b0-9cd5cfd340bf",
-  "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "id": "5af61017-70b2-4dcb-9247-1132b793af7f",
+  "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "sequence": 1,
   "number": {
     "raw": "1.",
@@ -112,7 +112,7 @@ Content-Type: multipart/form-data
   },
   "assets": [],
   "source": {
-    "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+    "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
     "pages": [
       1
     ],
@@ -143,7 +143,7 @@ Content-Type: multipart/form-data
     "grounding_score": null,
     "ocr_confidence": null
   },
-  "created_at": "2026-09-20T04:23:24.820583"
+  "created_at": "2026-09-20T04:30:57.121757"
 }
 ```
 
@@ -154,8 +154,8 @@ Content-Type: multipart/form-data
 **Stitched Question 2 Payload:**
 ```json
 {
-  "id": "eb34678d-a382-4cc0-9e1a-ec930d98a776",
-  "document_id": "aaecf8f4-0dba-41e9-a21a-7dc1f56e46b3",
+  "id": "89a63f7e-f914-4893-86fc-9b134104391f",
+  "document_id": "aab38ed4-ad4c-4711-a0fc-37f4184d6995",
   "sequence": 2,
   "number": {
     "raw": "2.",
@@ -195,16 +195,16 @@ Content-Type: multipart/form-data
     "raw": "A",
     "source": {
       "kind": "answer_key",
-      "document_id": "aaecf8f4-0dba-41e9-a21a-7dc1f56e46b3",
+      "document_id": "aab38ed4-ad4c-4711-a0fc-37f4184d6995",
       "page": 1,
-      "entry_id": "e5534bed-1248-4642-91f6-928992eb9034"
+      "entry_id": "ee529734-06cf-4f20-8f28-f05497fb3475"
     },
     "confidence": 0.9,
     "candidates": []
   },
   "assets": [],
   "source": {
-    "document_id": "aaecf8f4-0dba-41e9-a21a-7dc1f56e46b3",
+    "document_id": "aab38ed4-ad4c-4711-a0fc-37f4184d6995",
     "pages": [
       1,
       2
@@ -236,7 +236,7 @@ Content-Type: multipart/form-data
     "grounding_score": null,
     "ocr_confidence": null
   },
-  "created_at": "2026-09-20T04:23:26.446664"
+  "created_at": "2026-09-20T04:30:58.576128"
 }
 ```
 
@@ -251,22 +251,22 @@ Content-Type: multipart/form-data
 **Link Creation (POST /api/v1/documents/{id}/links):**
 ```json
 {
-  "id": "4b4a114a-ca75-41f5-b61f-8507bae7e8c4",
-  "from_document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
-  "to_document_id": "87dc5a9d-cdd6-4106-a8ee-4134dd4d53e1",
+  "id": "0414816a-8927-4646-a079-0680651a2748",
+  "from_document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
+  "to_document_id": "256fcd64-fcf3-4442-8e8d-479de764e440",
   "relation": "answer_key_for",
   "origin": "user",
-  "created_at": "2026-09-20T04:23:31.027913"
+  "created_at": "2026-09-20T04:31:02.076419"
 }
 ```
 **Reconciliation Summary (POST /api/v1/documents/{id}/reconcile):**
 ```json
 {
-  "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "status": "completed",
   "questions_matched": 19,
   "questions_total": 20,
-  "reconciled_at": "2026-09-20T04:23:35.123462Z"
+  "reconciled_at": "2026-09-20T04:31:06.146486Z"
 }
 ```
 
@@ -277,19 +277,19 @@ Content-Type: multipart/form-data
 **Sample Warning Record:**
 ```json
 {
-  "id": "0631640b-7be5-4a20-953d-eda4af898a95",
-  "document_id": "327958c5-bfe3-4150-9de8-351a48dcd25f",
-  "question_id": "bf4e2e8e-7073-4638-97d5-9f2f655c7251",
+  "id": "20303686-38c7-4f3e-a00e-81c3d43de64f",
+  "document_id": "1306ea74-db18-41b0-a2c1-20b0100d22c9",
+  "question_id": "79333628-dd0e-47c3-a599-f5eb54f805e7",
   "page_no": 1,
-  "code": "MISSING_TEXT",
-  "severity": "critical",
-  "message": "Quality flag MISSING_TEXT detected on question 1",
+  "code": "MISSING_NUMBER",
+  "severity": "warning",
+  "message": "Quality flag MISSING_NUMBER detected on question 1",
   "details": {
     "sequence": 1,
     "number": null
   },
   "resolved": false,
-  "created_at": "2026-09-20T04:23:36.349183"
+  "created_at": "2026-09-20T04:31:07.300400"
 }
 ```
 
@@ -298,8 +298,8 @@ Content-Type: multipart/form-data
 **PATCH /api/v1/questions/{id} Response:**
 ```json
 {
-  "id": "28180a47-1fd2-4882-a4b0-9cd5cfd340bf",
-  "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "id": "5af61017-70b2-4dcb-9247-1132b793af7f",
+  "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "sequence": 1,
   "number": {
     "raw": "1.",
@@ -339,16 +339,16 @@ Content-Type: multipart/form-data
     "raw": "A",
     "source": {
       "kind": "linked_document",
-      "document_id": "87dc5a9d-cdd6-4106-a8ee-4134dd4d53e1",
+      "document_id": "256fcd64-fcf3-4442-8e8d-479de764e440",
       "page": 1,
-      "entry_id": "d3433c39-37c7-49aa-a59c-b2e7f435a331"
+      "entry_id": "d3646c46-0fda-434b-b574-a44ed1e18545"
     },
     "confidence": 1.0,
     "candidates": []
   },
   "assets": [],
   "source": {
-    "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+    "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
     "pages": [
       1
     ],
@@ -369,8 +369,8 @@ Content-Type: multipart/form-data
     "reasons": [
       "ANSWER_NOT_FOUND"
     ],
-    "reviewed_by": "92832c47-a1a6-4e7e-9c8f-4ad88e345a11",
-    "reviewed_at": "2026-09-20T04:23:36.425336",
+    "reviewed_by": "8faaef81-57a7-40cd-9f42-bb59968be48a",
+    "reviewed_at": "2026-09-20T04:31:07.334404",
     "edited": true
   },
   "extraction": {
@@ -379,7 +379,7 @@ Content-Type: multipart/form-data
     "grounding_score": null,
     "ocr_confidence": null
   },
-  "created_at": "2026-09-20T04:23:24.820583"
+  "created_at": "2026-09-20T04:30:57.121757"
 }
 ```
 
@@ -388,8 +388,8 @@ Content-Type: multipart/form-data
 **POST /api/v1/questions/{id}/review Response:**
 ```json
 {
-  "id": "28180a47-1fd2-4882-a4b0-9cd5cfd340bf",
-  "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+  "id": "5af61017-70b2-4dcb-9247-1132b793af7f",
+  "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
   "sequence": 1,
   "number": {
     "raw": "1.",
@@ -429,16 +429,16 @@ Content-Type: multipart/form-data
     "raw": "A",
     "source": {
       "kind": "linked_document",
-      "document_id": "87dc5a9d-cdd6-4106-a8ee-4134dd4d53e1",
+      "document_id": "256fcd64-fcf3-4442-8e8d-479de764e440",
       "page": 1,
-      "entry_id": "d3433c39-37c7-49aa-a59c-b2e7f435a331"
+      "entry_id": "d3646c46-0fda-434b-b574-a44ed1e18545"
     },
     "confidence": 1.0,
     "candidates": []
   },
   "assets": [],
   "source": {
-    "document_id": "58258c9d-f124-4bf0-b6d3-813f7f1ae493",
+    "document_id": "13faa7d6-f7da-4fc1-9089-705553c7a2f1",
     "pages": [
       1
     ],
@@ -459,8 +459,8 @@ Content-Type: multipart/form-data
     "reasons": [
       "ANSWER_NOT_FOUND"
     ],
-    "reviewed_by": "92832c47-a1a6-4e7e-9c8f-4ad88e345a11",
-    "reviewed_at": "2026-09-20T04:23:36.497197",
+    "reviewed_by": "8faaef81-57a7-40cd-9f42-bb59968be48a",
+    "reviewed_at": "2026-09-20T04:31:07.370069",
     "edited": true
   },
   "extraction": {
@@ -469,7 +469,7 @@ Content-Type: multipart/form-data
     "grounding_score": null,
     "ocr_confidence": null
   },
-  "created_at": "2026-09-20T04:23:24.820583"
+  "created_at": "2026-09-20T04:30:57.121757"
 }
 ```
 

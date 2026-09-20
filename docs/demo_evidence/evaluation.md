@@ -1,6 +1,6 @@
 # Pipeline Evaluation Report
 
-- **Date:** 2026-09-20 04:13:25 UTC
+- **Date:** 2026-09-20 04:30:49 UTC
 - **Configured Extractor:** `rules`
 - **Evaluation Dataset:** Synthetic benchmark (`samples/input/` vs `samples/expected/`)
 
@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|---|---|
 | `digital_paper_mcq.pdf` | 20 | 20 | 100.0% | 100.0% | 100.0% | 0.0% | 0 |
 | `digital_paper_spanning.pdf` | 5 | 5 | 100.0% | 100.0% | 100.0% | 100.0% | 0 |
-| `paper_with_key_at_end.pdf` | 5 | 5 | 100.0% | 100.0% | 100.0% | 0.0% | 0 |
+| `paper_with_key_at_end.pdf` | 5 | 5 | 100.0% | 100.0% | 100.0% | 100.0% | 0 |
 | `paper_with_key_at_start.pdf` | 4 | 5 | 125.0% | 100.0% | 100.0% | 100.0% | 1 |
 | `scanned_clean.pdf` | 3 | 0 | 0.0% | 100.0% | 100.0% | 100.0% | 0 |
 | `scanned_lowquality.pdf` | 2 | 0 | 0.0% | 100.0% | 100.0% | 100.0% | 0 |
