@@ -1,0 +1,11 @@
+{
+  "filename": "scanned_lowquality.pdf",
+  "page_count": 2,
+  "role": "question_paper",
+  "quality_issues": [
+    "BLURRY",
+    "ROTATED_CORRECTED",
+    "LOW_RESOLUTION"
+  ],
+  "questions_count": 2
+}

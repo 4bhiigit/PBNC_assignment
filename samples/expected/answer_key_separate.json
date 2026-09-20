@@ -1,0 +1,13 @@
+{
+  "filename": "answer_key_separate.pdf",
+  "page_count": 1,
+  "role": "answer_key",
+  "total_entries": 21,
+  "matched_count": 19,
+  "out_of_range_entries": [
+    "20"
+  ],
+  "unmatched_entries": [
+    "99"
+  ]
+}

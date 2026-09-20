@@ -1,0 +1,29 @@
+{
+  "filename": "scanned_clean.pdf",
+  "page_count": 1,
+  "role": "question_paper",
+  "questions_count": 3,
+  "questions": [
+    {
+      "sequence": 1,
+      "number_norm": "1",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 2,
+      "number_norm": "2",
+      "answer_value": [
+        "B"
+      ]
+    },
+    {
+      "sequence": 3,
+      "number_norm": "3",
+      "answer_value": [
+        "A"
+      ]
+    }
+  ]
+}

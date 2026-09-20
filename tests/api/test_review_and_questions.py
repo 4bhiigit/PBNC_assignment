@@ -176,9 +176,7 @@ async def test_questions_list_filter_and_sort(
     assert resp.json()["total"] == 1
 
     # Filter by page
-    resp = await client.get(
-        f"/api/v1/documents/{doc_id}/questions?page=2", headers=headers
-    )
+    resp = await client.get(f"/api/v1/documents/{doc_id}/questions?page=2", headers=headers)
     assert resp.status_code == 200
     assert resp.json()["total"] == 1
     assert resp.json()["items"][0]["id"] == str(q2_id)

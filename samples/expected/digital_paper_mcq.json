@@ -1,0 +1,688 @@
+{
+  "filename": "digital_paper_mcq.pdf",
+  "page_count": 4,
+  "role": "question_paper",
+  "questions_count": 20,
+  "questions": [
+    {
+      "sequence": 1,
+      "number_raw": "1.",
+      "number_norm": "1",
+      "section": "Section A - Physics",
+      "type": "mcq_single",
+      "text": "What is the SI unit of electric current?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Ampere"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Volt"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Ohm"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Watt"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 2,
+      "number_raw": "2.",
+      "number_norm": "2",
+      "section": "Section A - Physics",
+      "type": "mcq_single",
+      "text": "A body of mass 2 kg moves with acceleration 3 m/s^2. Find the net force.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "3 N"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "5 N"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "6 N"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "1.5 N"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 3,
+      "number_raw": "3.",
+      "number_norm": "3",
+      "section": "Section A - Physics",
+      "type": "mcq_single",
+      "text": "Light year is a unit of which physical quantity?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Time"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Distance"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Speed"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Intensity"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "B"
+      ]
+    },
+    {
+      "sequence": 4,
+      "number_raw": "4.",
+      "number_norm": "4",
+      "section": "Section A - Physics",
+      "type": "mcq_single",
+      "text": "Refer to the circuit figure below. Identify the component labeled R.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Inductor"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Capacitor"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Resistor"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Diode"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 5,
+      "number_raw": "5.",
+      "number_norm": "5",
+      "section": "Section A - Physics",
+      "type": "mcq_single",
+      "text": "Sound waves cannot travel through which of the following media?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Water"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Steel"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Air"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Vacuum"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "D"
+      ]
+    },
+    {
+      "sequence": 6,
+      "number_raw": "Q.6",
+      "number_norm": "6",
+      "section": "Section B - Chemistry",
+      "type": "mcq_single",
+      "text": "What is the chemical formula of water?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "H2O"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "CO2"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "NaCl"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "CH4"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 7,
+      "number_raw": "Q.7",
+      "number_norm": "7",
+      "section": "Section B - Chemistry",
+      "type": "mcq_single",
+      "text": "Which gas is released during photosynthesis?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Nitrogen"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Oxygen"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Carbon dioxide"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Hydrogen"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "B"
+      ]
+    },
+    {
+      "sequence": 8,
+      "number_raw": "Q.8",
+      "number_norm": "8",
+      "section": "Section B - Chemistry",
+      "type": "mcq_single",
+      "text": "What is the pH value of pure water at 25 degrees Celsius?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "0"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "14"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "7"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "1"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 9,
+      "number_raw": "Q.9",
+      "number_norm": "9",
+      "section": "Section B - Chemistry",
+      "type": "mcq_single",
+      "text": "Refer to the table below comparing parameters across conditions.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Condition A"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Condition B"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Both equal"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "None"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 10,
+      "number_raw": "Q.10",
+      "number_norm": "10",
+      "section": "Section B - Chemistry",
+      "type": "mcq_single",
+      "text": "Which element is known as the King of Chemicals?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "Sulphuric Acid"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "Hydrochloric Acid"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Nitric Acid"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Acetic Acid"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 11,
+      "number_raw": "11)",
+      "number_norm": "11",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "Find the value of x if 2x + 6 = 14.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "2"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "3"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "4"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "5"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 12,
+      "number_raw": "12)",
+      "number_norm": "12",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "What is the derivative of sin(x) with respect to x?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "cos(x)"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "-cos(x)"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "tan(x)"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "-sin(x)"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 13,
+      "number_raw": "13)",
+      "number_norm": "13",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "What is the area of a circle with radius 7 cm? (Use pi = 22/7)",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "154 cm^2"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "44 cm^2"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "77 cm^2"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "308 cm^2"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 14,
+      "number_raw": "14)",
+      "number_norm": "14",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "If matrix A is 2x3 and matrix B is 3x2, what is the order of matrix AB?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "3x3"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "2x2"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "2x3"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "3x2"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "B"
+      ]
+    },
+    {
+      "sequence": 15,
+      "number_raw": "15)",
+      "number_norm": "15",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "What is the probability of getting a prime number when throwing a fair 6-sided die?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "1/6"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "1/3"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "1/2"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "2/3"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 16,
+      "number_raw": "(16)",
+      "number_norm": "16",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "Find the roots of the quadratic equation x^2 - 5x + 6 = 0.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "2 and 3"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "1 and 6"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "-2 and -3"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "-1 and -6"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "A"
+      ]
+    },
+    {
+      "sequence": 17,
+      "number_raw": "(17)",
+      "number_norm": "17",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "What is the sum of interior angles of a pentagon?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "180 deg"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "360 deg"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "540 deg"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "720 deg"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 18,
+      "number_raw": "(18)",
+      "number_norm": "18",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "Evaluate the limit of sin(x)/x as x approaches 0.",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "0"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "1"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "Infinity"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "Undefined"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "B"
+      ]
+    },
+    {
+      "sequence": 19,
+      "number_raw": "(19)",
+      "number_norm": "19",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "What is the distance between points (0,0) and (3,4)?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "3"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "4"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "5"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "7"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "C"
+      ]
+    },
+    {
+      "sequence": 20,
+      "number_raw": "(20)",
+      "number_norm": "20",
+      "section": "Section C - Mathematics",
+      "type": "mcq_single",
+      "text": "If log10(x) = 2, what is the value of x?",
+      "options": [
+        {
+          "label": "A",
+          "raw_label": "(A)",
+          "text": "20"
+        },
+        {
+          "label": "B",
+          "raw_label": "(B)",
+          "text": "100"
+        },
+        {
+          "label": "C",
+          "raw_label": "(C)",
+          "text": "200"
+        },
+        {
+          "label": "D",
+          "raw_label": "(D)",
+          "text": "1000"
+        }
+      ],
+      "answer_status": "matched",
+      "answer_value": [
+        "B"
+      ]
+    }
+  ]
+}

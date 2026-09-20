@@ -13,12 +13,8 @@ def sections_match(s1: str, s2: str) -> bool:
     clean2 = s2.strip().lower()
     if clean1 == clean2:
         return True
-    c1 = re.sub(
-        r"^(?:section|part|खंड|खण्ड|भाग)\s*[a-z0-9\s\-:]+\s*[-:]\s*", "", clean1
-    ).strip()
-    c2 = re.sub(
-        r"^(?:section|part|खंड|खण्ड|भाग)\s*[a-z0-9\s\-:]+\s*[-:]\s*", "", clean2
-    ).strip()
+    c1 = re.sub(r"^(?:section|part|खंड|खण्ड|भाग)\s*[a-z0-9\s\-:]+\s*[-:]\s*", "", clean1).strip()
+    c2 = re.sub(r"^(?:section|part|खंड|खण्ड|भाग)\s*[a-z0-9\s\-:]+\s*[-:]\s*", "", clean2).strip()
     if c1 and c2 and (c1 == c2 or c1 in c2 or c2 in c1):
         return True
     return False
@@ -225,9 +221,7 @@ def match_question_answers(
         # If duplicate numbers exist across sections without matching section info,
         # mark as ambiguous
         is_number_ambiguous = question_number_counts.get(q_num, 0) > 1 and any(
-            c.section is None
-            or not q_section
-            or not sections_match(c.section, q_section)
+            c.section is None or not q_section or not sections_match(c.section, q_section)
             for c in selected_candidates
         )
         if is_number_ambiguous:

@@ -1,0 +1,10 @@
+{
+  "filename": "low_confidence.pdf",
+  "page_count": 1,
+  "expected_flags": [
+    "MISSING_NUMBER",
+    "DUPLICATE_NUMBER",
+    "MCQ_OPTIONS_LT_2"
+  ],
+  "expected_status": "needs_review"
+}

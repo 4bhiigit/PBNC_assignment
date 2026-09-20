@@ -54,10 +54,10 @@ class RulesExtractor(Extractor):
                 current_section = sec
                 continue
 
-            # 2. Check for inline options (e.g. "(A) x (B) y" or "(1) True (2) False")
-            if current_item:
+            # 2. If already inside a question, check for inline options or alphabetic stacked options
+            if current_item is not None:
                 inline_opts = parse_inline_options(line)
-                if inline_opts:
+                if len(inline_opts) >= 2:
                     for opt in inline_opts:
                         current_item.options.append(
                             ExtractedOption(
@@ -68,20 +68,12 @@ class RulesExtractor(Extractor):
                         )
                     continue
 
-                # If already inside an option block, subsequent stacked options take precedence
                 stacked_opt = match_stacked_option(line)
-                if stacked_opt and current_item.options:
-                    current_item.options.append(
-                        ExtractedOption(
-                            label=stacked_opt.label,
-                            raw_label=stacked_opt.raw_label,
-                            text=stacked_opt.text,
-                        )
-                    )
-                    continue
-
-                # Alphabetic options (A-D) always take precedence over question numbers
-                if stacked_opt and re.sub(r"[\[\(\]\)\.\:\s]", "", stacked_opt.raw_label).isalpha():
+                # If alphabetic option or if options are already being collected, it belongs to current item
+                if stacked_opt and (
+                    current_item.options
+                    or re.sub(r"[\[\(\]\)\.\:\s]", "", stacked_opt.raw_label).isalpha()
+                ):
                     current_item.options.append(
                         ExtractedOption(
                             label=stacked_opt.label,
@@ -97,10 +89,12 @@ class RulesExtractor(Extractor):
                     current_item.inline_answer_raw = ans_match.group(1).strip("()[]")
                     continue
 
-            # 3. Question number match
+            # 3. Check for question number starting a new question
             num_match = match_question_number(line)
             if num_match:
-                if current_item:
+                if current_item and (
+                    current_item.text.strip() or current_item.options or current_item.number_raw
+                ):
                     items.append(self._finalize_item(current_item))
                 current_item = ExtractedItem(
                     number_raw=num_match.raw,
@@ -111,30 +105,72 @@ class RulesExtractor(Extractor):
                 )
                 continue
 
-            # 4. Standalone stacked option or continuation line
-            if current_item:
-                stacked_opt = match_stacked_option(line)
-                if stacked_opt:
+            # 4. If no question has started on this page yet, this line is a continuation fragment
+            if current_item is None:
+                if ctx.page_no == 1:
+                    # On page 1, lines before the first question are title/instructions unless they contain options
+                    stacked_opt = match_stacked_option(line)
+                    inline_opts = parse_inline_options(line)
+                    if not (stacked_opt or inline_opts):
+                        continue
+                current_item = ExtractedItem(
+                    text="",
+                    options=[],
+                    starts_on_previous_page=(ctx.page_no > 1),
+                    self_confidence=0.90,
+                )
+
+            # 5. Check for inline options (single or multi)
+            inline_opts = parse_inline_options(line)
+            if inline_opts:
+                for opt in inline_opts:
                     current_item.options.append(
                         ExtractedOption(
-                            label=stacked_opt.label,
-                            raw_label=stacked_opt.raw_label,
-                            text=stacked_opt.text,
+                            label=opt.label,
+                            raw_label=opt.raw_label,
+                            text=opt.text,
                         )
                     )
-                    continue
+                continue
 
-                # If inside an existing option, append continuation line
-                if current_item.options:
-                    last_opt = current_item.options[-1]
-                    last_opt.text = (last_opt.text + " " + line).strip()
-                    continue
+            # 6. Check for stacked option
+            stacked_opt = match_stacked_option(line)
+            if stacked_opt:
+                current_item.options.append(
+                    ExtractedOption(
+                        label=stacked_opt.label,
+                        raw_label=stacked_opt.raw_label,
+                        text=stacked_opt.text,
+                    )
+                )
+                continue
 
-                # Otherwise, it is continuation text for the question body
+            # 7. Check for inline answer
+            ans_match = INLINE_ANSWER_REGEX.match(line)
+            if ans_match:
+                current_item.inline_answer_raw = ans_match.group(1).strip("()[]")
+                continue
+
+            # 8. Text continuation
+            if current_item.options:
+                last_opt = current_item.options[-1]
+                last_opt.text = (last_opt.text + " " + line).strip()
+            else:
                 current_item.text = (current_item.text + " " + line).strip()
 
-        if current_item:
+        if current_item and (
+            current_item.text.strip() or current_item.options or current_item.number_raw
+        ):
             items.append(self._finalize_item(current_item))
+
+        # Check if the last item on the page continues onto the next page
+        if items:
+            last_item = items[-1]
+            trimmed = last_item.text.strip()
+            is_incomplete_mcq = 0 < len(last_item.options) < 4
+            has_no_punct = bool(trimmed and trimmed[-1] not in '.?!:)"' and not last_item.options)
+            if is_incomplete_mcq or has_no_punct:
+                last_item.continues_on_next_page = True
 
         # Check for answer keys in a mixed page (e.g. at bottom)
         if not answer_key_entries:

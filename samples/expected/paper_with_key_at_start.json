@@ -1,0 +1,13 @@
+{
+  "filename": "paper_with_key_at_start.pdf",
+  "page_count": 2,
+  "role": "combined",
+  "questions_count": 4,
+  "answer_keys_count": 4,
+  "answers": {
+    "1": "B",
+    "2": "C",
+    "3": "A",
+    "4": "D"
+  }
+}

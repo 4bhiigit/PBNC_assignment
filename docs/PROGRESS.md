@@ -70,12 +70,12 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] OpenAPI documentation & schema export (`scripts/export_openapi.py` -> `openapi.json`)
   - [x] Phase 6 test suite & verification (164 passed in 91.93s, ruff clean, mypy clean)
 
-- [ ] **Phase 7: Sample Documents, Tests, Evaluation**
-  - [ ] `scripts/generate_samples.py` (digital, spanning, answer keys, scanned, corrupted)
-  - [ ] Full test suite execution & coverage report
-  - [ ] `scripts/evaluate.py` comparing output against ground-truth JSON
-  - [ ] Real evaluation metrics saved to `docs/demo_evidence/evaluation.md`
-  - [ ] Phase 7 verification
+- [x] **Phase 7: Sample Documents, Tests, Evaluation**
+  - [x] `scripts/generate_samples.py` (digital, spanning, answer keys, scanned, corrupted)
+  - [x] Full test suite execution & coverage report (171 passed in 81.30s, 79% app coverage)
+  - [x] `scripts/evaluate.py` comparing output against ground-truth JSON
+  - [x] Real evaluation metrics saved to `docs/demo_evidence/evaluation.md`
+  - [x] Phase 7 verification (171 passed, ruff clean, mypy clean)
 
 - [ ] **Phase 8: Documentation, Postman, Demo Evidence**
   - [ ] `README.md` (quick start, architecture overview, configuration, test instructions)

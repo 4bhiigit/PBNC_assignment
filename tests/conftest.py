@@ -69,7 +69,9 @@ def mock_celery_and_storage(monkeypatch: pytest.MonkeyPatch):
 
         settings = get_settings()
         old_storage_path = settings.storage_path
+        old_extractor = settings.extractor
         settings.storage_path = tmp_storage
+        settings.extractor = "rules"
         storage_module.get_storage.cache_clear()
 
         import app.workers.tasks as tasks_module
@@ -86,6 +88,7 @@ def mock_celery_and_storage(monkeypatch: pytest.MonkeyPatch):
                         yield
                     finally:
                         settings.storage_path = old_storage_path
+                        settings.extractor = old_extractor
                         storage_module.get_storage.cache_clear()
 
 

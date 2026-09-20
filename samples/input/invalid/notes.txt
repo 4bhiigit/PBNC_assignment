@@ -1,0 +1,1 @@
+Plain text notes that should be rejected by upload MIME validation.

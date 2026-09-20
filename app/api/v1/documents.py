@@ -304,9 +304,7 @@ async def get_document_review_queue_endpoint(
             details={"status": doc.status, "stage": doc.stage, "progress_pct": doc.progress_pct},
         )
 
-    return await get_document_review_queue(
-        db=db, doc_id=doc.id, limit=limit, offset=offset
-    )
+    return await get_document_review_queue(db=db, doc_id=doc.id, limit=limit, offset=offset)
 
 
 @router.get(

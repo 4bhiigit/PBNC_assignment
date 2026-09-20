@@ -138,9 +138,7 @@ async def list_warnings_for_document(
     return items, total
 
 
-async def get_question_asset_by_id(
-    db: AsyncSession, asset_id: uuid.UUID
-) -> QuestionAsset | None:
+async def get_question_asset_by_id(db: AsyncSession, asset_id: uuid.UUID) -> QuestionAsset | None:
     query = select(QuestionAsset).where(QuestionAsset.id == asset_id)
     result = await db.execute(query)
     return result.scalar_one_or_none()

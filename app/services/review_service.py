@@ -193,9 +193,7 @@ async def patch_question(
 
     # Re-evaluate confidence and status with human correction
     flag_codes: list[str] = [
-        str(f.get("code"))
-        for f in (q.flags or [])
-        if isinstance(f, dict) and f.get("code")
+        str(f.get("code")) for f in (q.flags or []) if isinstance(f, dict) and f.get("code")
     ]
     # Remove critical completeness flags that were corrected
     if q.text and len(q.text.strip()) >= 5:
@@ -344,16 +342,12 @@ async def get_document_warnings_response(
     return WarningListResponse(items=items, total=total, limit=limit, offset=offset)
 
 
-async def build_document_export_response(
-    db: AsyncSession, doc: Document
-) -> DocumentExportResponse:
+async def build_document_export_response(db: AsyncSession, doc: Document) -> DocumentExportResponse:
     """Builds a complete export JSON containing metadata, questions, answer key, and warnings."""
     doc_detail = await build_document_detail_response(db, doc)
 
     # Load all questions
-    questions, _ = await list_questions_for_document(
-        db=db, doc_id=doc.id, limit=1000, offset=0
-    )
+    questions, _ = await list_questions_for_document(db=db, doc_id=doc.id, limit=1000, offset=0)
     spec_questions = [build_spec_question_response(q) for q in questions]
 
     # Load all answer key entries
@@ -376,9 +370,7 @@ async def build_document_export_response(
     ]
 
     # Load all warnings
-    warnings, _ = await list_warnings_for_document(
-        db=db, doc_id=doc.id, limit=1000, offset=0
-    )
+    warnings, _ = await list_warnings_for_document(db=db, doc_id=doc.id, limit=1000, offset=0)
     spec_warnings = [
         WarningItemResponse(
             id=w.id,
@@ -403,9 +395,7 @@ async def build_document_export_response(
     )
 
 
-async def build_page_quality_list(
-    db: AsyncSession, doc_id: uuid.UUID
-) -> list[PageQualityResponse]:
+async def build_page_quality_list(db: AsyncSession, doc_id: uuid.UUID) -> list[PageQualityResponse]:
     """Builds list of page quality records for document."""
     pages = await list_pages_for_document(db, doc_id)
     return [

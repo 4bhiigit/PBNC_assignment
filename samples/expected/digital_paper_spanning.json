@@ -1,0 +1,57 @@
+{
+  "filename": "digital_paper_spanning.pdf",
+  "page_count": 4,
+  "role": "question_paper",
+  "questions_count": 5,
+  "questions": [
+    {
+      "sequence": 1,
+      "number_raw": "1.",
+      "number_norm": "1",
+      "source_pages": [
+        1
+      ]
+    },
+    {
+      "sequence": 2,
+      "number_raw": "2.",
+      "number_norm": "2",
+      "source_pages": [
+        1,
+        2
+      ],
+      "flags": [
+        "CROSS_PAGE_STITCHED"
+      ]
+    },
+    {
+      "sequence": 3,
+      "number_raw": "3.",
+      "number_norm": "3",
+      "source_pages": [
+        2
+      ]
+    },
+    {
+      "sequence": 4,
+      "number_raw": "4.",
+      "number_norm": "4",
+      "source_pages": [
+        2,
+        3,
+        4
+      ],
+      "flags": [
+        "CROSS_PAGE_STITCHED"
+      ]
+    },
+    {
+      "sequence": 5,
+      "number_raw": "5.",
+      "number_norm": "5",
+      "source_pages": [
+        4
+      ]
+    }
+  ]
+}
