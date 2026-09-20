@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocIntel — Document Intelligence & Question Extraction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: #1a2234;
+      --bg-card-hover: #222d44;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.6);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+    .brand-text h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
+    .brand-text span { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .nav-actions { display: flex; align-items: center; gap: 1rem; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #fff;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.775rem; }
+    .btn-success { background: #059669; color: #fff; }
+    .btn-success:hover { background: #047857; }
+    .btn-danger { background: rgba(244, 63, 94, 0.15); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
+    .btn-danger:hover { background: rgba(244, 63, 94, 0.25); }
+
+    /* Layout */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .hero-text h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .hero-text p { color: var(--text-muted); font-size: 0.925rem; max-width: 700px; }
+
+    /* Main Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.75rem;
+      align-items: start;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Upload Dropzone */
+    .dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.4);
+      border-radius: var(--radius-md);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      background: rgba(99, 102, 241, 0.03);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 1rem;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.08);
+    }
+    .dropzone-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .sample-presets {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .preset-btn {
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.825rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .preset-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+      transform: translateX(2px);
+    }
+    .preset-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      font-weight: 600;
+    }
+
+    /* Progress & Pipeline Status */
+    .pipeline-tracker {
+      margin-bottom: 1.5rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+    }
+    .pipeline-bar-wrapper {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.75rem 0;
+    }
+    .pipeline-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .pipeline-steps {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .pipeline-step.active { color: var(--accent-cyan); font-weight: 600; }
+    .pipeline-step.done { color: var(--accent-emerald); }
+
+    /* Filter Tabs */
+    .tabs-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.04); }
+    .tab-btn.active {
+      color: #fff;
+      background: var(--primary);
+      box-shadow: 0 2px 8px var(--primary-glow);
+    }
+    .tab-count {
+      background: rgba(0,0,0,0.25);
+      padding: 0.1rem 0.45rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+
+    /* Question Cards */
+    .questions-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .q-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .q-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    .q-card.needs-review {
+      border-left: 4px solid var(--accent-amber);
+    }
+    .q-card.stitched {
+      border-left: 4px solid var(--accent-cyan);
+    }
+
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .q-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.725rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-num { background: var(--bg-surface); color: #fff; border: 1px solid var(--border-color); }
+    .badge-sec { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
+    .badge-type { background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
+    .badge-conf-high { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+    .badge-conf-mid { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .badge-flag { background: rgba(244, 63, 94, 0.15); color: #fda4af; }
+    .badge-stitched { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+
+    .q-text {
+      font-size: 0.975rem;
+      font-weight: 500;
+      color: #f9fafb;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .q-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .q-opt {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.85rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .q-opt.correct {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #a7f3d0;
+      font-weight: 600;
+    }
+    .q-opt-label {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .q-opt.correct .q-opt-label {
+      background: var(--accent-emerald);
+      color: #064e3b;
+    }
+
+    .q-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      max-width: 680px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      background: var(--bg-surface);
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted);
+    }
+    .form-input, .form-textarea {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    /* JSON Viewer */
+    pre.code-block {
+      background: #0d1117;
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      overflow-x: auto;
+      max-height: 400px;
+      color: #7ee787;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--primary);
+      padding: 0.85rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      display: none;
+      align-items: center;
+      gap: 0.6rem;
+      z-index: 200;
+      font-size: 0.875rem;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-logo">DI</div>
+      <div class="brand-text">
+        <h1>DocIntel Exam Service</h1>
+        <span>Question Extraction & Intelligence</span>
+      </div>
+    </a>
+    <div class="nav-actions">
+      <div id="userPill" style="font-size: 0.825rem; color: var(--text-muted);">
+        <span id="userEmail">demo_evaluator@example.com</span>
+      </div>
+      <a href="/docs" target="_blank" class="btn btn-secondary btn-sm">
+        <span>📖 OpenAPI / Swagger</span>
+      </a>
+      <button id="authBtn" class="btn btn-primary btn-sm" onclick="loginDemoUser()">
+        <span>⚡ Quick Login</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h2>Intelligent Question Paper Extraction & Verification</h2>
+        <p>Extract MCQs, multi-page stitched questions, option matrices, and match answer keys with deterministic grounding and quality scoring.</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="triggerSampleUpload('digital_paper_mcq.pdf')">
+          🚀 Run Digital MCQ Demo
+        </button>
+      </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+
+      <!-- Left Column: Upload & Document Controls -->
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+        <!-- Upload Card -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📤 Upload Document</div>
+            <span class="badge badge-num" id="uploadStatusBadge">Ready</span>
+          </div>
+
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+            <div class="dropzone-icon">📄</div>
+            <div style="font-weight: 600; margin-bottom: 0.25rem;">Click or Drag PDF / Image</div>
+            <div style="font-size: 0.775rem; color: var(--text-muted);">Max 25MB • PDF, PNG, JPG</div>
+            <input type="file" id="fileInput" style="display: none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileSelect(event)" />
+          </div>
+
+          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
+            ⚡ Quick Sample Test Papers
+          </div>
+          <div class="sample-presets">
+            <button class="preset-btn" onclick="triggerSampleUpload('digital_paper_mcq.pdf')">
+              <span>📄 20 MCQs with Figure & Table</span>
+              <span class="preset-badge">Standard</span>
+            </button>
+            <button class="preset-btn" onclick="triggerSampleUpload('digital_paper_spanning.pdf')">
+              <span>🔗 Cross-Page Stitching (2 & 3 Page)</span>
+              <span class="preset-badge">Multi-Page</span>
+            </button>
+            <button class="preset-btn" onclick="triggerSampleUpload('paper_with_key_at_end.pdf')">
+              <span>🔑 Paper with Embedded Answer Key</span>
+              <span class="preset-badge">Auto Match</span>
+            </button>
+            <button class="preset-btn" onclick="triggerSampleUpload('low_confidence.pdf')">
+              <span>⚠️ Low-Confidence & Review Queue</span>
+              <span class="preset-badge">Flagged</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Document Info Card -->
+        <div class="card" id="docInfoCard" style="display: none;">
+          <div class="card-header">
+            <div class="card-title">ℹ️ Active Document</div>
+            <button class="btn btn-secondary btn-sm" onclick="viewExportJson()">Export JSON</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.85rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Filename:</span>
+              <span id="docFilename" style="font-weight: 600;">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Pages:</span>
+              <span id="docPages">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Detected Role:</span>
+              <span id="docRole" class="badge badge-sec">-</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Extracted Items:</span>
+              <span id="docQuestionsCount" style="font-weight: 700; color: var(--accent-emerald);">-</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Pipeline Status & Extracted Questions Feed -->
+      <div>
+
+        <!-- Pipeline Progress Bar -->
+        <div class="pipeline-tracker" id="pipelineTracker" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 700; font-size: 0.9rem;" id="pipelineStageText">Processing...</span>
+            <span style="font-family: var(--font-mono); font-size: 0.85rem;" id="pipelinePctText">0%</span>
+          </div>
+          <div class="pipeline-bar-wrapper">
+            <div class="pipeline-bar" id="pipelineBar"></div>
+          </div>
+          <div class="pipeline-steps">
+            <span class="pipeline-step" id="stepUpload">1. Uploaded (202)</span>
+            <span class="pipeline-step" id="stepIngest">2. Ingestion</span>
+            <span class="pipeline-step" id="stepPages">3. Extraction</span>
+            <span class="pipeline-step" id="stepFinalize">4. Stitch & Match</span>
+            <span class="pipeline-step" id="stepDone">5. Ready</span>
+          </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="tabs-bar" id="filterTabs">
+          <button class="tab-btn active" onclick="setSectionFilter('all')">
+            <span>All Questions</span>
+            <span class="tab-count" id="countAll">0</span>
+          </button>
+          <button class="tab-btn" onclick="setSectionFilter('Section A - Physics')">
+            <span>Physics</span>
+            <span class="tab-count" id="countPhysics">0</span>
+          </button>
+          <button class="tab-btn" onclick="setSectionFilter('Section B - Chemistry')">
+            <span>Chemistry</span>
+            <span class="tab-count" id="countChem">0</span>
+          </button>
+          <button class="tab-btn" onclick="setSectionFilter('Section C - Mathematics')">
+            <span>Math</span>
+            <span class="tab-count" id="countMath">0</span>
+          </button>
+          <button class="tab-btn" onclick="setSectionFilter('review_queue')" style="color: var(--accent-amber);">
+            <span>⚠️ Needs Review</span>
+            <span class="tab-count" id="countReview" style="background: rgba(245, 158, 11, 0.2); color: #fcd34d;">0</span>
+          </button>
+        </div>
+
+        <!-- Questions Feed -->
+        <div class="questions-feed" id="questionsFeed">
+          <div class="empty-state">
+            <div class="empty-state-icon">📄</div>
+            <h3 style="margin-bottom: 0.5rem;">No Document Selected</h3>
+            <p>Upload a question paper PDF or click one of the preset sample buttons on the left to start extraction.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Edit & Review Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Edit Question</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editQuestionId" />
+        <div class="form-group">
+          <label class="form-label">Question Text</label>
+          <textarea class="form-textarea" id="editQuestionText" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Section Heading</label>
+          <input type="text" class="form-input" id="editSection" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Review Decision</label>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn btn-success btn-sm" onclick="submitReviewAction('approve')">✓ Approve Question</button>
+            <button class="btn btn-danger btn-sm" onclick="submitReviewAction('reject')">✕ Reject Question</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveQuestionEdit()">Save Revisions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export JSON Modal -->
+  <div class="modal-overlay" id="jsonModal">
+    <div class="modal" style="max-width: 800px;">
+      <div class="modal-header">
+        <h3>Document JSON Export (SPEC §14)</h3>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('jsonModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre class="code-block" id="jsonContent"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="copyJsonExport()">📋 Copy JSON</button>
+        <button class="btn btn-primary" onclick="downloadJsonExport()">💾 Download .json</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <script>
+    let authToken = "";
+    let activeDocId = null;
+    let allQuestions = [];
+    let currentFilter = "all";
+    let pollInterval = null;
+
+    // Initialize Auth
+    async function loginDemoUser() {
+      try {
+        const res = await fetch("/api/v1/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: "demo_evaluator@example.com", password: "SecurePassword123!" })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          authToken = data.access_token;
+          showToast("✓ Authenticated as demo evaluator");
+          document.getElementById("authBtn").textContent = "✓ Logged In";
+          document.getElementById("authBtn").classList.replace("btn-primary", "btn-success");
+        } else {
+          // Register if doesn't exist
+          await fetch("/api/v1/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: "demo_evaluator@example.com", password: "SecurePassword123!" })
+          });
+          loginDemoUser();
+        }
+      } catch (e) {
+        console.error("Auth error:", e);
+      }
+    }
+
+    // Auto login on load
+    window.addEventListener("DOMContentLoaded", () => {
+      loginDemoUser();
+    });
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastMsg").textContent = msg;
+      toast.style.display = "flex";
+      setTimeout(() => { toast.style.display = "none"; }, 3000);
+    }
+
+    // Trigger Preset Sample Upload
+    async function triggerSampleUpload(filename) {
+      if (!authToken) await loginDemoUser();
+      showToast(`Uploading ${filename}...`);
+      
+      try {
+        const res = await fetch(`/api/v1/demo/sample-upload?filename=${encodeURIComponent(filename)}`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          activeDocId = data.id;
+          startPipelineTracking(activeDocId, filename);
+        } else {
+          showToast(`Error starting sample upload: ${res.statusText}`);
+        }
+      } catch (e) {
+        console.error(e);
+        showToast("Upload request failed");
+      }
+    }
+
+    // Handle Custom File Upload
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!authToken) await loginDemoUser();
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      showToast(`Uploading ${file.name}...`);
+      try {
+        const res = await fetch("/api/v1/documents", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${authToken}` },
+          body: formData
+        });
+
+        if (res.status === 202) {
+          const data = await res.json();
+          activeDocId = data.id;
+          startPipelineTracking(activeDocId, file.name);
+        } else {
+          const err = await res.json();
+          showToast(`Upload failed: ${err.error?.message || res.statusText}`);
+        }
+      } catch (e) {
+        console.error(e);
+        showToast("Upload failed");
+      }
+    }
+
+    // Polling & Pipeline Tracker
+    function startPipelineTracking(docId, filename) {
+      if (pollInterval) clearInterval(pollInterval);
+
+      document.getElementById("pipelineTracker").style.display = "block";
+      document.getElementById("docInfoCard").style.display = "block";
+      document.getElementById("docFilename").textContent = filename;
+      document.getElementById("uploadStatusBadge").textContent = "Processing";
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/v1/documents/${docId}/status`, {
+            headers: { "Authorization": `Bearer ${authToken}` }
+          });
+          if (!res.ok) return;
+
+          const data = await res.json();
+          const pct = data.progress_pct || 0;
+          document.getElementById("pipelineBar").style.width = `${pct}%`;
+          document.getElementById("pipelinePctText").textContent = `${pct}%`;
+          document.getElementById("pipelineStageText").textContent = `Stage: ${data.stage || data.status}`;
+
+          // Highlight steps
+          if (pct >= 20) document.getElementById("stepIngest").classList.add("done");
+          if (pct >= 60) document.getElementById("stepPages").classList.add("done");
+          if (pct >= 90) document.getElementById("stepFinalize").classList.add("done");
+
+          if (data.status === "completed" || data.status === "completed_with_warnings" || pct === 100) {
+            clearInterval(pollInterval);
+            document.getElementById("stepDone").classList.add("done");
+            document.getElementById("pipelineStageText").textContent = "Extraction Completed!";
+            document.getElementById("uploadStatusBadge").textContent = "Completed";
+            document.getElementById("uploadStatusBadge").className = "badge badge-conf-high";
+            loadExtractedQuestions(docId);
+          }
+        } catch (e) {
+          console.error("Status polling error:", e);
+        }
+      }, 1000);
+    }
+
+    // Load Questions
+    async function loadExtractedQuestions(docId) {
+      try {
+        const res = await fetch(`/api/v1/documents/${docId}/questions`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        allQuestions = data.items || [];
+        document.getElementById("docQuestionsCount").textContent = allQuestions.length;
+        updateCounts();
+        renderQuestions();
+      } catch (e) {
+        console.error("Failed to load questions:", e);
+      }
+    }
+
+    function updateCounts() {
+      document.getElementById("countAll").textContent = allQuestions.length;
+      document.getElementById("countPhysics").textContent = allQuestions.filter(q => (q.section || "").includes("Physics")).length;
+      document.getElementById("countChem").textContent = allQuestions.filter(q => (q.section || "").includes("Chemistry")).length;
+      document.getElementById("countMath").textContent = allQuestions.filter(q => (q.section || "").includes("Mathematics")).length;
+      document.getElementById("countReview").textContent = allQuestions.filter(q => q.status === "needs_review").length;
+    }
+
+    function setSectionFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+      event.currentTarget.classList.add("active");
+      renderQuestions();
+    }
+
+    function renderQuestions() {
+      const feed = document.getElementById("questionsFeed");
+      let filtered = allQuestions;
+
+      if (currentFilter === "review_queue") {
+        filtered = allQuestions.filter(q => q.status === "needs_review");
+      } else if (currentFilter !== "all") {
+        filtered = allQuestions.filter(q => (q.section || "") === currentFilter);
+      }
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔍</div>
+            <h3>No questions in this section</h3>
+            <p>Select another tab or upload a different document.</p>
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = filtered.map(q => {
+        const isStitched = (q.source?.pages?.length || 1) > 1;
+        const flags = q.flags || [];
+        const isNeedsReview = q.status === "needs_review";
+
+        return `
+          <div class="q-card ${isNeedsReview ? 'needs-review' : ''} ${isStitched ? 'stitched' : ''}">
+            <div class="q-header">
+              <div class="q-meta">
+                <span class="badge badge-num">Q${q.number?.normalized || q.sequence}</span>
+                ${q.section ? `<span class="badge badge-sec">${q.section}</span>` : ''}
+                <span class="badge badge-type">${q.type}</span>
+                ${isStitched ? `<span class="badge badge-stitched">🔗 Spans Pages: ${q.source.pages.join(', ')}</span>` : ''}
+                ${flags.map(f => `<span class="badge badge-flag">${f.code || f}</span>`).join(' ')}
+              </div>
+              <div>
+                <span class="badge ${q.confidence >= 0.85 ? 'badge-conf-high' : 'badge-conf-mid'}">
+                  ${Math.round((q.confidence || 0) * 100)}% Conf
+                </span>
+                <button class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;" onclick="openEditModal('${q.id}')">
+                  ✏️ Edit / Review
+                </button>
+              </div>
+            </div>
+
+            <div class="q-text">${escapeHtml(q.text)}</div>
+
+            ${q.options && q.options.length > 0 ? `
+              <div class="q-options">
+                ${q.options.map(opt => {
+                  const isCorrect = q.answer?.status === "matched" && q.answer.value?.includes(opt.label);
+                  return `
+                    <div class="q-opt ${isCorrect ? 'correct' : ''}">
+                      <div class="q-opt-label">${opt.label}</div>
+                      <div>${escapeHtml(opt.text)}</div>
+                      ${isCorrect ? '<span style="margin-left:auto; color: var(--accent-emerald);">✓ Match</span>' : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            ` : ''}
+
+            <div class="q-footer">
+              <span>Grounding: ${Math.round((q.extraction?.grounding_score || 1) * 100)}% • Method: ${q.extraction?.method || 'rules'}</span>
+              <span>Answer Status: <strong>${q.answer?.status || 'not_found'}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Modal Operations
+    function openEditModal(qId) {
+      const q = allQuestions.find(item => item.id === qId);
+      if (!q) return;
+
+      document.getElementById("editQuestionId").value = q.id;
+      document.getElementById("editQuestionText").value = q.text;
+      document.getElementById("editSection").value = q.section || "";
+      document.getElementById("modalTitle").textContent = `Review Question #${q.number?.normalized || q.sequence}`;
+      document.getElementById("editModal").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.remove("open");
+    }
+
+    async function saveQuestionEdit() {
+      const qId = document.getElementById("editQuestionId").value;
+      const text = document.getElementById("editQuestionText").value;
+      const section = document.getElementById("editSection").value;
+
+      try {
+        const res = await fetch(`/api/v1/questions/${qId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ text, section })
+        });
+
+        if (res.ok) {
+          showToast("✓ Question updated & revision recorded");
+          closeModal();
+          loadExtractedQuestions(activeDocId);
+        } else {
+          showToast("Failed to update question");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function submitReviewAction(action) {
+      const qId = document.getElementById("editQuestionId").value;
+      try {
+        const res = await fetch(`/api/v1/questions/${qId}/review`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ action, notes: `Reviewed via Web Dashboard (${action})` })
+        });
+
+        if (res.ok) {
+          showToast(`✓ Question marked as ${action}ed`);
+          closeModal();
+          loadExtractedQuestions(activeDocId);
+        } else {
+          showToast("Review action failed");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // JSON Export Viewer
+    async function viewExportJson() {
+      if (!activeDocId) return;
+      try {
+        const res = await fetch(`/api/v1/documents/${activeDocId}/export`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const json = await res.json();
+          document.getElementById("jsonContent").textContent = JSON.stringify(json, null, 2);
+          document.getElementById("jsonModal").classList.add("open");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function copyJsonExport() {
+      const content = document.getElementById("jsonContent").textContent;
+      navigator.clipboard.writeText(content);
+      showToast("📋 JSON copied to clipboard");
+    }
+
+    function downloadJsonExport() {
+      const content = document.getElementById("jsonContent").textContent;
+      const blob = new Blob([content], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `doc_${activeDocId}_export.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
