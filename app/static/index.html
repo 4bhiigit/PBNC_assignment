@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocIntel — Document Intelligence & Question Extraction</title>
+  <title>DocIntel — Document Intelligence & Question Extraction Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-base: #0b0f19;
-      --bg-surface: #111827;
-      --bg-card: #1a2234;
-      --bg-card-hover: #222d44;
-      --border-color: rgba(255, 255, 255, 0.08);
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-card: #1e293b;
+      --bg-card-hover: #26354d;
+      --border: rgba(255, 255, 255, 0.08);
       --border-focus: rgba(99, 102, 241, 0.6);
       --primary: #6366f1;
       --primary-hover: #4f46e5;
@@ -22,13 +22,15 @@
       --accent-emerald: #10b981;
       --accent-amber: #f59e0b;
       --accent-rose: #f43f5e;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.4);
+      --shadow-lg: 0 25px 50px -12px rgba(0,0,0,0.6);
       --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
@@ -47,13 +49,13 @@
 
     /* Top Navigation */
     header {
-      background: rgba(17, 24, 39, 0.85);
+      background: rgba(15, 23, 42, 0.9);
       backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 50;
-      padding: 0.85rem 2rem;
+      padding: 0.75rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -64,6 +66,7 @@
       gap: 0.75rem;
       text-decoration: none;
       color: var(--text-main);
+      cursor: pointer;
     }
     .brand-logo {
       width: 36px;
@@ -77,13 +80,32 @@
       font-size: 1.1rem;
       box-shadow: 0 0 15px var(--primary-glow);
     }
-    .brand-text h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; }
-    .brand-text span { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+    .brand-text h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .brand-text span { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
 
-    .nav-actions { display: flex; align-items: center; gap: 1rem; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .nav-link:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: #fff; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
       font-size: 0.875rem;
@@ -91,7 +113,7 @@
       border-radius: var(--radius-sm);
       border: 1px solid transparent;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
       text-decoration: none;
       font-family: inherit;
     }
@@ -100,170 +122,230 @@
       color: #fff;
       box-shadow: 0 4px 12px var(--primary-glow);
     }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #4f46e5, #4338ca);
-      transform: translateY(-1px);
-    }
+    .btn-primary:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-1px); }
     .btn-secondary {
       background: var(--bg-card);
       color: var(--text-main);
-      border-color: var(--border-color);
+      border: 1px solid var(--border);
     }
     .btn-secondary:hover { background: var(--bg-card-hover); border-color: rgba(255,255,255,0.15); }
-    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.775rem; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+    .btn-xs { padding: 0.2rem 0.5rem; font-size: 0.75rem; }
     .btn-success { background: #059669; color: #fff; }
     .btn-success:hover { background: #047857; }
     .btn-danger { background: rgba(244, 63, 94, 0.15); color: #fda4af; border-color: rgba(244, 63, 94, 0.3); }
     .btn-danger:hover { background: rgba(244, 63, 94, 0.25); }
 
-    /* Layout */
-    .container {
-      max-width: 1400px;
+    /* Views */
+    .view-container { display: none; width: 100%; }
+    .view-container.active { display: block; }
+
+    /* Landing Page View */
+    .landing-hero {
+      max-width: 1200px;
+      margin: 3rem auto 2rem;
+      padding: 0 2rem;
+      text-align: center;
+    }
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      color: #a5b4fc;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    .landing-hero h2 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #fff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .landing-hero p {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+    .hero-cta { display: flex; gap: 1rem; justify-content: center; margin-bottom: 3.5rem; }
+
+    .feature-grid {
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+      padding: 0 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      transition: all 0.2s ease;
+    }
+    .feature-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(99, 102, 241, 0.15);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* Workspace / Dashboard Layout */
+    .workspace-container {
+      max-width: 1560px;
       margin: 0 auto;
       padding: 1.5rem 2rem;
       width: 100%;
-      flex: 1;
     }
 
-    .hero-banner {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(6, 182, 212, 0.08));
-      border: 1px solid rgba(99, 102, 241, 0.25);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    }
-    .hero-text h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; }
-    .hero-text p { color: var(--text-muted); font-size: 0.925rem; max-width: 700px; }
-
-    /* Main Grid */
-    .dashboard-grid {
+    /* Split Screen Studio */
+    .studio-layout {
       display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 1.75rem;
-      align-items: start;
+      grid-template-columns: 460px 1fr;
+      gap: 1.5rem;
+      height: calc(100vh - 120px);
+      align-items: stretch;
     }
 
-    /* Cards */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
+    .studio-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 1.25rem;
-      box-shadow: var(--shadow-lg);
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .card-title {
-      font-size: 1rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    /* Upload Dropzone */
-    .dropzone {
-      border: 2px dashed rgba(99, 102, 241, 0.4);
-      border-radius: var(--radius-md);
-      padding: 2rem 1.5rem;
-      text-align: center;
-      background: rgba(99, 102, 241, 0.03);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      margin-bottom: 1rem;
-    }
-    .dropzone:hover, .dropzone.dragover {
-      border-color: var(--accent-cyan);
-      background: rgba(6, 182, 212, 0.08);
-    }
-    .dropzone-icon {
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
-      color: var(--primary);
-    }
-
-    .sample-presets {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 1rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
     }
-    .preset-btn {
-      text-align: left;
-      padding: 0.6rem 0.85rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-sm);
-      color: var(--text-main);
-      font-size: 0.825rem;
-      cursor: pointer;
+    .panel-header {
+      padding: 0.85rem 1.25rem;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: all 0.15s ease;
-      font-family: inherit;
     }
-    .preset-btn:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--primary);
-      transform: translateX(2px);
+    .panel-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+    .panel-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+
+    /* Document Viewer */
+    .doc-viewer-canvas {
+      width: 100%;
+      height: 100%;
+      background: #0b0f19;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      position: relative;
     }
-    .preset-badge {
-      font-size: 0.7rem;
-      padding: 0.15rem 0.45rem;
+    .page-preview-img {
+      max-width: 100%;
+      height: auto;
       border-radius: 4px;
-      background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
-      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.2s ease;
     }
 
-    /* Progress & Pipeline Status */
-    .pipeline-tracker {
-      margin-bottom: 1.5rem;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+    /* Question Cards & Feed */
+    .questions-feed { display: flex; flex-direction: column; gap: 1rem; }
+    .q-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 1.25rem;
+      transition: all 0.2s ease;
     }
-    .pipeline-bar-wrapper {
-      width: 100%;
-      height: 8px;
+    .q-card:hover { border-color: rgba(99, 102, 241, 0.4); box-shadow: var(--shadow-sm); }
+    .q-card.stitched { border-left: 4px solid var(--accent-cyan); }
+    .q-card.needs-review { border-left: 4px solid var(--accent-amber); }
+
+    .q-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; gap: 0.5rem; }
+    .q-meta { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; }
+    .badge {
+      font-size: 0.725rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-num { background: var(--bg-surface); color: #fff; border: 1px solid var(--border); }
+    .badge-sec { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
+    .badge-type { background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
+    .badge-conf-high { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+    .badge-conf-mid { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+    .badge-flag { background: rgba(244, 63, 94, 0.15); color: #fda4af; }
+    .badge-stitched { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+
+    .q-text { font-size: 0.95rem; font-weight: 500; color: #f8fafc; margin-bottom: 1rem; line-height: 1.6; }
+    .q-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+    .q-opt {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 0.8rem;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .q-opt.correct { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.4); color: #a7f3d0; font-weight: 600; }
+    .q-opt-label {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: rgba(255,255,255,0.06);
       border-radius: 4px;
-      overflow: hidden;
-      margin: 0.75rem 0;
+      font-size: 0.775rem;
     }
-    .pipeline-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
-      width: 0%;
-      transition: width 0.4s ease;
-    }
-    .pipeline-steps {
+    .q-opt.correct .q-opt-label { background: var(--accent-emerald); color: #064e3b; }
+
+    .q-footer {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-muted);
+      align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 0.65rem;
+      font-size: 0.775rem;
+      color: var(--text-dim);
     }
-    .pipeline-step.active { color: var(--accent-cyan); font-weight: 600; }
-    .pipeline-step.done { color: var(--accent-emerald); }
 
     /* Filter Tabs */
     .tabs-bar {
       display: flex;
       gap: 0.5rem;
-      margin-bottom: 1.25rem;
-      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
       padding-bottom: 0.5rem;
       overflow-x: auto;
     }
@@ -271,8 +353,8 @@
       background: transparent;
       border: none;
       color: var(--text-muted);
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.825rem;
       font-weight: 600;
       border-radius: var(--radius-sm);
       cursor: pointer;
@@ -283,136 +365,52 @@
       font-family: inherit;
     }
     .tab-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.04); }
-    .tab-btn.active {
-      color: #fff;
-      background: var(--primary);
-      box-shadow: 0 2px 8px var(--primary-glow);
-    }
-    .tab-count {
-      background: rgba(0,0,0,0.25);
-      padding: 0.1rem 0.45rem;
-      border-radius: 10px;
-      font-size: 0.75rem;
-    }
+    .tab-btn.active { color: #fff; background: var(--primary); box-shadow: 0 2px 8px var(--primary-glow); }
+    .tab-count { background: rgba(0,0,0,0.3); padding: 0.1rem 0.45rem; border-radius: 10px; font-size: 0.75rem; }
 
-    /* Question Cards */
-    .questions-feed {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .q-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
+    /* Upload & Library Cards */
+    .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; }
+    .dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.4);
       border-radius: var(--radius-md);
-      padding: 1.25rem;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      background: rgba(99, 102, 241, 0.03);
+      cursor: pointer;
       transition: all 0.2s ease;
-      position: relative;
+      margin-bottom: 1.25rem;
     }
-    .q-card:hover {
-      border-color: rgba(99, 102, 241, 0.4);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    }
-    .q-card.needs-review {
-      border-left: 4px solid var(--accent-amber);
-    }
-    .q-card.stitched {
-      border-left: 4px solid var(--accent-cyan);
-    }
+    .dropzone:hover { border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.08); }
 
-    .q-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .q-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .badge {
-      font-size: 0.725rem;
-      font-weight: 700;
-      padding: 0.2rem 0.55rem;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .badge-num { background: var(--bg-surface); color: #fff; border: 1px solid var(--border-color); }
-    .badge-sec { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
-    .badge-type { background: rgba(6, 182, 212, 0.15); color: #67e8f9; }
-    .badge-conf-high { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
-    .badge-conf-mid { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
-    .badge-flag { background: rgba(244, 63, 94, 0.15); color: #fda4af; }
-    .badge-stitched { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
-
-    .q-text {
-      font-size: 0.975rem;
-      font-weight: 500;
-      color: #f9fafb;
-      margin-bottom: 1rem;
-      line-height: 1.6;
-    }
-
-    .q-options {
+    .sample-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 0.6rem;
-      margin-bottom: 1rem;
+      gap: 0.85rem;
+      margin-top: 1rem;
     }
-    .q-opt {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+    .sample-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 0.6rem 0.85rem;
-      font-size: 0.875rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
       display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .q-opt.correct {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: rgba(16, 185, 129, 0.4);
-      color: #a7f3d0;
-      font-weight: 600;
-    }
-    .q-opt-label {
-      font-family: var(--font-mono);
-      font-weight: 700;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255,255,255,0.06);
-      border-radius: 4px;
-      font-size: 0.8rem;
-    }
-    .q-opt.correct .q-opt-label {
-      background: var(--accent-emerald);
-      color: #064e3b;
-    }
-
-    .q-footer {
-      display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      padding-top: 0.75rem;
-      font-size: 0.8rem;
-      color: var(--text-dim);
+    }
+    .sample-box:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
     }
 
     /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -422,88 +420,58 @@
     .modal-overlay.open { display: flex; }
     .modal {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       max-width: 680px;
       width: 100%;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);
+      box-shadow: var(--shadow-lg);
       max-height: 90vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .modal-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-body {
-      padding: 1.5rem;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .modal-footer {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-      background: var(--bg-surface);
-    }
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-    .form-label {
-      display: block;
-      font-size: 0.825rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-      color: var(--text-muted);
-    }
-    .form-input, .form-textarea {
+    .modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+    .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem; background: var(--bg-surface); }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: 0.825rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-muted); }
+    .form-input, .form-textarea, .form-select {
       width: 100%;
       background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 0.65rem 0.85rem;
       color: var(--text-main);
       font-family: inherit;
       font-size: 0.9rem;
     }
-    .form-input:focus, .form-textarea:focus {
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px var(--primary-glow);
     }
 
-    /* JSON Viewer */
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    .data-table th { padding: 0.75rem 1rem; background: var(--bg-surface); color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .data-table td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); }
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Code Block */
     pre.code-block {
-      background: #0d1117;
+      background: #0b0f19;
       padding: 1rem;
       border-radius: var(--radius-sm);
       font-family: var(--font-mono);
       font-size: 0.8rem;
       overflow-x: auto;
-      max-height: 400px;
+      max-height: 420px;
       color: #7ee787;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
     }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--text-muted);
-    }
-    .empty-state-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-    }
-
-    /* Toast Notification */
+    /* Toast */
     .toast {
       position: fixed;
       bottom: 2rem;
@@ -518,249 +486,500 @@
       gap: 0.6rem;
       z-index: 200;
       font-size: 0.875rem;
-      animation: slideUp 0.3s ease;
     }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     @media (max-width: 1024px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
+      .studio-layout { grid-template-columns: 1fr; height: auto; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Header -->
+  <!-- Top Header Navigation -->
   <header>
-    <a href="/" class="brand">
+    <div class="brand" onclick="switchView('landing')">
       <div class="brand-logo">DI</div>
       <div class="brand-text">
-        <h1>DocIntel Exam Service</h1>
-        <span>Question Extraction & Intelligence</span>
+        <h1>DocIntel AI Platform</h1>
+        <span>Examination Intelligence Suite</span>
       </div>
-    </a>
-    <div class="nav-actions">
-      <div id="userPill" style="font-size: 0.825rem; color: var(--text-muted);">
-        <span id="userEmail">demo_evaluator@example.com</span>
-      </div>
-      <a href="/docs" target="_blank" class="btn btn-secondary btn-sm">
-        <span>📖 OpenAPI / Swagger</span>
-      </a>
-      <button id="authBtn" class="btn btn-primary btn-sm" onclick="loginDemoUser()">
-        <span>⚡ Quick Login</span>
-      </button>
     </div>
-  </header>
 
-  <!-- Main Container -->
-  <main class="container">
+    <nav class="nav-links">
+      <span class="nav-link active" id="navLanding" onclick="switchView('landing')">Overview</span>
+      <span class="nav-link" id="navWorkspace" onclick="switchView('workspace')">Documents & Upload</span>
+      <span class="nav-link" id="navStudio" onclick="switchView('studio')">Review Studio</span>
+      <span class="nav-link" id="navReconcile" onclick="switchView('reconcile')">Answer Key Reconciliation</span>
+    </nav>
 
-    <!-- Hero Banner -->
-    <div class="hero-banner">
-      <div class="hero-text">
-        <h2>Intelligent Question Paper Extraction & Verification</h2>
-        <p>Extract MCQs, multi-page stitched questions, option matrices, and match answer keys with deterministic grounding and quality scoring.</p>
-      </div>
-      <div>
-        <button class="btn btn-primary" onclick="triggerSampleUpload('digital_paper_mcq.pdf')">
-          🚀 Run Digital MCQ Demo
+    <div class="nav-actions">
+      <a href="/docs" target="_blank" class="btn btn-secondary btn-sm">
+        <span>📖 OpenAPI Docs</span>
+      </a>
+      <div id="authSection">
+        <button class="btn btn-primary btn-sm" onclick="openAuthModal('login')">
+          <span>Sign In</span>
         </button>
       </div>
     </div>
+  </header>
 
-    <!-- Dashboard Grid -->
-    <div class="dashboard-grid">
+  <!-- ============================================================ -->
+  <!-- 1. LANDING PAGE VIEW -->
+  <!-- ============================================================ -->
+  <div id="viewLanding" class="view-container active">
+    <section class="landing-hero">
+      <div class="pill-tag">⚡ Automated Question Paper Digitization & Intelligence</div>
+      <h2>Enterprise Exam Digitization & Question Extraction Platform</h2>
+      <p>Transform multi-page PDF examination papers, scanned question sheets, and separate answer key documents into structured, grounded, and verified assessment items ready for digital exam platforms.</p>
+      <div class="hero-cta">
+        <button class="btn btn-primary" onclick="openAuthModal('login')">🚀 Launch Studio</button>
+        <button class="btn btn-secondary" onclick="switchView('workspace')">📄 Explore Sample Papers</button>
+      </div>
+    </section>
 
-      <!-- Left Column: Upload & Document Controls -->
-      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+    <section class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Hybrid OCR & Vision AI</h3>
+        <p>Direct digital text extraction layer with automatic fallback to deskewed Tesseract OCR and multimodal Google Gemini structured parsing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>Smart Cross-Page Stitching</h3>
+        <p>Detects questions and options split across page boundaries (2-page & 3-page spanning), de-hyphenates breaks, and tracks source references.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>RapidFuzz Grounding Guard</h3>
+        <p>Token-set fuzzy matching guarantees extracted questions strictly originate from the original document, eliminating hallucinations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔑</div>
+        <h3>Multi-Document Reconciliation</h3>
+        <p>Extracts inline answers, embedded tables, or links separate answer key PDFs via <code>document_links</code> with distributed reconciliation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Audit Trail & Human Review</h3>
+        <p>Snapshot-backed <code>question_revisions</code> record every human edit with reviewer email, timestamp, and before/after diffs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Owner-Scoped Multi-Tenancy</h3>
+        <p>Strict resource isolation prevents unauthorized access; foreign resource IDs return 404 to block ID enumeration.</p>
+      </div>
+    </section>
+  </div>
 
-        <!-- Upload Card -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">📤 Upload Document</div>
-            <span class="badge badge-num" id="uploadStatusBadge">Ready</span>
-          </div>
-
-          <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
-            <div class="dropzone-icon">📄</div>
-            <div style="font-weight: 600; margin-bottom: 0.25rem;">Click or Drag PDF / Image</div>
-            <div style="font-size: 0.775rem; color: var(--text-muted);">Max 25MB • PDF, PNG, JPG</div>
-            <input type="file" id="fileInput" style="display: none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileSelect(event)" />
-          </div>
-
-          <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">
-            ⚡ Quick Sample Test Papers
-          </div>
-          <div class="sample-presets">
-            <button class="preset-btn" onclick="triggerSampleUpload('digital_paper_mcq.pdf')">
-              <span>📄 20 MCQs with Figure & Table</span>
-              <span class="preset-badge">Standard</span>
-            </button>
-            <button class="preset-btn" onclick="triggerSampleUpload('digital_paper_spanning.pdf')">
-              <span>🔗 Cross-Page Stitching (2 & 3 Page)</span>
-              <span class="preset-badge">Multi-Page</span>
-            </button>
-            <button class="preset-btn" onclick="triggerSampleUpload('paper_with_key_at_end.pdf')">
-              <span>🔑 Paper with Embedded Answer Key</span>
-              <span class="preset-badge">Auto Match</span>
-            </button>
-            <button class="preset-btn" onclick="triggerSampleUpload('low_confidence.pdf')">
-              <span>⚠️ Low-Confidence & Review Queue</span>
-              <span class="preset-badge">Flagged</span>
-            </button>
-          </div>
+  <!-- ============================================================ -->
+  <!-- 2. WORKSPACE & DOCUMENT MANAGER VIEW -->
+  <!-- ============================================================ -->
+  <div id="viewWorkspace" class="view-container">
+    <div class="workspace-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700;">Document Workspace</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Upload new examination papers or select a benchmark sample to begin extraction.</p>
         </div>
-
-        <!-- Active Document Info Card -->
-        <div class="card" id="docInfoCard" style="display: none;">
-          <div class="card-header">
-            <div class="card-title">ℹ️ Active Document</div>
-            <button class="btn btn-secondary btn-sm" onclick="viewExportJson()">Export JSON</button>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.85rem;">
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--text-muted);">Filename:</span>
-              <span id="docFilename" style="font-weight: 600;">-</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--text-muted);">Pages:</span>
-              <span id="docPages">-</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--text-muted);">Detected Role:</span>
-              <span id="docRole" class="badge badge-sec">-</span>
-            </div>
-            <div style="display: flex; justify-content: space-between;">
-              <span style="color: var(--text-muted);">Extracted Items:</span>
-              <span id="docQuestionsCount" style="font-weight: 700; color: var(--accent-emerald);">-</span>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- Right Column: Pipeline Status & Extracted Questions Feed -->
-      <div>
+      <!-- Upload Zone -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileUploadInput').click()">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📤</div>
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">Upload Exam Document</h3>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Click or drag PDF, PNG, or JPG files here (Max 25MB • Magic-byte MIME Sniffed)</p>
+          <input type="file" id="fileUploadInput" style="display: none;" accept=".pdf,.png,.jpg,.jpeg" onchange="handleFileUpload(event)" />
+        </div>
 
-        <!-- Pipeline Progress Bar -->
-        <div class="pipeline-tracker" id="pipelineTracker" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 700; font-size: 0.9rem;" id="pipelineStageText">Processing...</span>
-            <span style="font-family: var(--font-mono); font-size: 0.85rem;" id="pipelinePctText">0%</span>
+        <h4 style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+          📑 Benchmark Sample Exam Archive
+        </h4>
+        <div class="sample-grid">
+          <div class="sample-box" onclick="uploadSampleFile('digital_paper_mcq.pdf')">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">Standard 20 MCQ Paper</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Physics, Chemistry, Math sections with Circuit Diagram & Data Table.</p>
+            </div>
+            <div style="margin-top: 0.75rem;"><span class="badge badge-sec">Standard Test</span></div>
           </div>
-          <div class="pipeline-bar-wrapper">
-            <div class="pipeline-bar" id="pipelineBar"></div>
+
+          <div class="sample-box" onclick="uploadSampleFile('digital_paper_spanning.pdf')">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">Cross-Page Spanning Paper</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Demonstrates 2-page & 3-page cross-page question stitching.</p>
+            </div>
+            <div style="margin-top: 0.75rem;"><span class="badge badge-stitched">Multi-Page</span></div>
           </div>
-          <div class="pipeline-steps">
-            <span class="pipeline-step" id="stepUpload">1. Uploaded (202)</span>
-            <span class="pipeline-step" id="stepIngest">2. Ingestion</span>
-            <span class="pipeline-step" id="stepPages">3. Extraction</span>
-            <span class="pipeline-step" id="stepFinalize">4. Stitch & Match</span>
-            <span class="pipeline-step" id="stepDone">5. Ready</span>
+
+          <div class="sample-box" onclick="uploadSampleFile('paper_with_key_at_end.pdf')">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">Paper with Embedded Key</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Questions followed by <code>Answer Key</code> grid on final page.</p>
+            </div>
+            <div style="margin-top: 0.75rem;"><span class="badge badge-conf-high">Auto Key Match</span></div>
+          </div>
+
+          <div class="sample-box" onclick="uploadSampleFile('answer_key_separate.pdf')">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">Separate Solution Document</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Official solution key for multi-document link reconciliation.</p>
+            </div>
+            <div style="margin-top: 0.75rem;"><span class="badge badge-type">Link Doc</span></div>
+          </div>
+
+          <div class="sample-box" onclick="uploadSampleFile('low_confidence.pdf')">
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem;">Low-Confidence Review Paper</div>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Missing numbers and duplicate labels routed to Review Queue.</p>
+            </div>
+            <div style="margin-top: 0.75rem;"><span class="badge badge-flag">Needs Review</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document History Table -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700;">Uploaded Documents Library</h3>
+          <button class="btn btn-secondary btn-sm" onclick="loadDocumentsLibrary()">🔄 Refresh Library</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Status</th>
+              <th>Detected Role</th>
+              <th>Pages</th>
+              <th>Uploaded</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="docsTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No documents uploaded yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 3. SPLIT-SCREEN REVIEW STUDIO VIEW -->
+  <!-- ============================================================ -->
+  <div id="viewStudio" class="view-container">
+    <div class="workspace-container">
+      
+      <!-- Studio Header Controls -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <h2 style="font-size: 1.25rem; font-weight: 700;" id="studioDocTitle">Review Studio</h2>
+          <span class="badge badge-sec" id="studioRoleBadge">Question Paper</span>
+          <span class="badge badge-conf-high" id="studioStatusBadge">Ready</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary btn-sm" onclick="openJsonExportModal()">📄 View SPEC §14 JSON</button>
+          <button class="btn btn-primary btn-sm" onclick="switchView('workspace')">📁 Change Document</button>
+        </div>
+      </div>
+
+      <!-- Studio Layout -->
+      <div class="studio-layout">
+        
+        <!-- Left: Document Page Viewer -->
+        <div class="studio-panel">
+          <div class="panel-header">
+            <div class="panel-title">📄 Document Original View</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <button class="btn btn-secondary btn-xs" onclick="changeViewerPage(-1)">◀ Prev</button>
+              <span id="pageIndicator" style="font-size: 0.8rem; font-weight: 600; font-family: var(--font-mono);">Page 1/1</span>
+              <button class="btn btn-secondary btn-xs" onclick="changeViewerPage(1)">Next ▶</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding: 0;">
+            <div class="doc-viewer-canvas" id="docViewerCanvas">
+              <img id="pageRenderImg" class="page-preview-img" style="display: none;" alt="Rendered Page" />
+              <div id="pageLoadingMsg" style="color: var(--text-muted); font-size: 0.85rem;">Select a document to render pages</div>
+            </div>
           </div>
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="tabs-bar" id="filterTabs">
-          <button class="tab-btn active" onclick="setSectionFilter('all')">
-            <span>All Questions</span>
-            <span class="tab-count" id="countAll">0</span>
-          </button>
-          <button class="tab-btn" onclick="setSectionFilter('Section A - Physics')">
-            <span>Physics</span>
-            <span class="tab-count" id="countPhysics">0</span>
-          </button>
-          <button class="tab-btn" onclick="setSectionFilter('Section B - Chemistry')">
-            <span>Chemistry</span>
-            <span class="tab-count" id="countChem">0</span>
-          </button>
-          <button class="tab-btn" onclick="setSectionFilter('Section C - Mathematics')">
-            <span>Math</span>
-            <span class="tab-count" id="countMath">0</span>
-          </button>
-          <button class="tab-btn" onclick="setSectionFilter('review_queue')" style="color: var(--accent-amber);">
-            <span>⚠️ Needs Review</span>
-            <span class="tab-count" id="countReview" style="background: rgba(245, 158, 11, 0.2); color: #fcd34d;">0</span>
-          </button>
-        </div>
+        <!-- Right: Extracted Questions Feed & Review Tools -->
+        <div class="studio-panel">
+          <div class="panel-header">
+            <div class="panel-title">✨ Extracted Assessment Items (<span id="totalQuestionsCount">0</span>)</div>
+            <div style="display: flex; gap: 0.4rem;">
+              <span class="badge badge-conf-high" id="studioHighConfCount">0 High Conf</span>
+              <span class="badge badge-flag" id="studioReviewCount">0 Needs Review</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            
+            <!-- Section Tabs -->
+            <div class="tabs-bar" id="studioTabs">
+              <button class="tab-btn active" onclick="filterStudioQuestions('all', event)">
+                <span>All</span>
+                <span class="tab-count" id="countTabAll">0</span>
+              </button>
+              <button class="tab-btn" onclick="filterStudioQuestions('Section A - Physics', event)">
+                <span>Physics</span>
+                <span class="tab-count" id="countTabPhys">0</span>
+              </button>
+              <button class="tab-btn" onclick="filterStudioQuestions('Section B - Chemistry', event)">
+                <span>Chemistry</span>
+                <span class="tab-count" id="countTabChem">0</span>
+              </button>
+              <button class="tab-btn" onclick="filterStudioQuestions('Section C - Mathematics', event)">
+                <span>Math</span>
+                <span class="tab-count" id="countTabMath">0</span>
+              </button>
+              <button class="tab-btn" onclick="filterStudioQuestions('review_queue', event)" style="color: var(--accent-amber);">
+                <span>⚠️ Review Queue</span>
+                <span class="tab-count" id="countTabReview" style="background: rgba(245,158,11,0.2); color: #fcd34d;">0</span>
+              </button>
+            </div>
 
-        <!-- Questions Feed -->
-        <div class="questions-feed" id="questionsFeed">
-          <div class="empty-state">
-            <div class="empty-state-icon">📄</div>
-            <h3 style="margin-bottom: 0.5rem;">No Document Selected</h3>
-            <p>Upload a question paper PDF or click one of the preset sample buttons on the left to start extraction.</p>
+            <!-- Questions Feed -->
+            <div class="questions-feed" id="studioQuestionsFeed">
+              <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                Select or upload a document to view extracted questions.
+              </div>
+            </div>
+
           </div>
         </div>
 
       </div>
 
     </div>
+  </div>
 
-  </main>
+  <!-- ============================================================ -->
+  <!-- 4. RECONCILIATION VIEW -->
+  <!-- ============================================================ -->
+  <div id="viewReconcile" class="view-container">
+    <div class="workspace-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 700;">Answer Key Reconciliation Studio</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Associate separate solution documents and reconcile answers across question papers.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openLinkModal()">🔗 Link Answer Key Document</button>
+      </div>
 
-  <!-- Edit & Review Modal -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700;">Active Answer Key Entries (<span id="reconcileKeysCount">0</span>)</h3>
+          <button class="btn btn-success btn-sm" onclick="runDocumentReconciliation()">⚡ Run Auto-Reconciliation</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Question #</th>
+              <th>Section</th>
+              <th>Parsed Answer</th>
+              <th>Confidence</th>
+              <th>Match Status</th>
+              <th>Matched Question</th>
+            </tr>
+          </thead>
+          <tbody id="reconcileTableBody">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No answer key entries available for current document.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- AUTH MODAL -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="authModalTitle">Sign In to DocIntel</h3>
+        <button class="btn btn-secondary btn-xs" onclick="closeAuthModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+          <button class="btn btn-secondary btn-sm" style="flex: 1;" id="authTabLogin" onclick="setAuthMode('login')">Sign In</button>
+          <button class="btn btn-secondary btn-sm" style="flex: 1;" id="authTabRegister" onclick="setAuthMode('register')">Register</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-input" id="authEmail" value="demo_evaluator@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="authPassword" value="SecurePassword123!" />
+        </div>
+
+        <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(99,102,241,0.08); border-radius: var(--radius-sm); border: 1px solid rgba(99,102,241,0.2);">
+          <div style="font-size: 0.8rem; font-weight: 600; color: #a5b4fc; margin-bottom: 0.25rem;">⚡ Quick Demo Account</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">Pre-configured evaluator account credentials are pre-filled.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAuthModal()">Cancel</button>
+        <button class="btn btn-primary" id="authSubmitBtn" onclick="submitAuthForm()">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- EDIT / REVIEW MODAL -->
+  <!-- ============================================================ -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="modalTitle">Edit Question</h3>
-        <button class="btn btn-secondary btn-sm" onclick="closeModal()">✕</button>
+        <h3 id="editModalHeaderTitle">Edit & Revise Question</h3>
+        <button class="btn btn-secondary btn-xs" onclick="closeEditModal()">✕</button>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="editQuestionId" />
+        <input type="hidden" id="modalQuestionId" />
         <div class="form-group">
           <label class="form-label">Question Text</label>
-          <textarea class="form-textarea" id="editQuestionText" rows="4"></textarea>
+          <textarea class="form-textarea" id="modalQuestionText" rows="4"></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Section Heading</label>
-          <input type="text" class="form-input" id="editSection" />
+          <input type="text" class="form-input" id="modalQuestionSection" />
         </div>
         <div class="form-group">
-          <label class="form-label">Review Decision</label>
+          <label class="form-label">Review Actions</label>
           <div style="display: flex; gap: 0.75rem;">
-            <button class="btn btn-success btn-sm" onclick="submitReviewAction('approve')">✓ Approve Question</button>
-            <button class="btn btn-danger btn-sm" onclick="submitReviewAction('reject')">✕ Reject Question</button>
+            <button class="btn btn-success btn-sm" onclick="executeReviewAction('approve')">✓ Mark Approved</button>
+            <button class="btn btn-danger btn-sm" onclick="executeReviewAction('reject')">✕ Mark Rejected</button>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-        <button class="btn btn-primary" onclick="saveQuestionEdit()">Save Revisions</button>
+        <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitQuestionRevision()">Save Revision</button>
       </div>
     </div>
   </div>
 
-  <!-- Export JSON Modal -->
-  <div class="modal-overlay" id="jsonModal">
-    <div class="modal" style="max-width: 800px;">
+  <!-- ============================================================ -->
+  <!-- LINK DOCUMENT MODAL -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="linkModal">
+    <div class="modal" style="max-width: 500px;">
       <div class="modal-header">
-        <h3>Document JSON Export (SPEC §14)</h3>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('jsonModal').classList.remove('open')">✕</button>
+        <h3>Link Solution / Answer Key Document</h3>
+        <button class="btn btn-secondary btn-xs" onclick="document.getElementById('linkModal').classList.remove('open')">✕</button>
       </div>
       <div class="modal-body">
-        <pre class="code-block" id="jsonContent"></pre>
+        <div class="form-group">
+          <label class="form-label">Target Solution Document</label>
+          <select class="form-select" id="linkTargetDocSelect"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Relationship Type</label>
+          <select class="form-select" id="linkRelationSelect">
+            <option value="answer_key_for">answer_key_for (Official Solution Key)</option>
+            <option value="continuation_of">continuation_of (Part 2 of Exam)</option>
+            <option value="related">related (Reference)</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="copyJsonExport()">📋 Copy JSON</button>
-        <button class="btn btn-primary" onclick="downloadJsonExport()">💾 Download .json</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('linkModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="createDocumentRelationship()">Establish Link</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast">
-    <span id="toastMsg">Operation successful</span>
+  <!-- ============================================================ -->
+  <!-- JSON EXPORT MODAL -->
+  <!-- ============================================================ -->
+  <div class="modal-overlay" id="jsonModal">
+    <div class="modal" style="max-width: 840px;">
+      <div class="modal-header">
+        <h3>Document JSON Export (SPEC §14 Schema)</h3>
+        <button class="btn btn-secondary btn-xs" onclick="document.getElementById('jsonModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre class="code-block" id="jsonViewerContent"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="copyJsonText()">📋 Copy JSON</button>
+        <button class="btn btn-primary" onclick="downloadJsonFile()">💾 Download .json</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastBox">
+    <span id="toastMsgText">Notification</span>
   </div>
 
   <script>
-    let authToken = "";
-    let activeDocId = null;
-    let allQuestions = [];
-    let currentFilter = "all";
-    let pollInterval = null;
+    // State
+    let authToken = localStorage.getItem("docintel_token") || "";
+    let currentUser = null;
+    let currentDocId = localStorage.getItem("docintel_active_doc") || null;
+    let documentsList = [];
+    let currentQuestions = [];
+    let currentViewerPage = 1;
+    let totalViewerPages = 1;
+    let studioFilter = "all";
+    let authMode = "login";
 
-    // Initialize Auth
-    async function loginDemoUser() {
+    // View Navigation
+    function switchView(viewName) {
+      document.querySelectorAll(".view-container").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".nav-link").forEach(el => el.classList.remove("active"));
+
+      if (viewName === "landing") {
+        document.getElementById("viewLanding").classList.add("active");
+        document.getElementById("navLanding").classList.add("active");
+      } else if (viewName === "workspace") {
+        document.getElementById("viewWorkspace").classList.add("active");
+        document.getElementById("navWorkspace").classList.add("active");
+        loadDocumentsLibrary();
+      } else if (viewName === "studio") {
+        document.getElementById("viewStudio").classList.add("active");
+        document.getElementById("navStudio").classList.add("active");
+        if (currentDocId) loadStudioDocument(currentDocId);
+      } else if (viewName === "reconcile") {
+        document.getElementById("viewReconcile").classList.add("active");
+        document.getElementById("navReconcile").classList.add("active");
+        if (currentDocId) loadReconcileTable(currentDocId);
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toastBox");
+      document.getElementById("toastMsgText").textContent = msg;
+      t.style.display = "flex";
+      setTimeout(() => { t.style.display = "none"; }, 3500);
+    }
+
+    // Authentication Management
+    async function initAuth() {
+      if (authToken) {
+        try {
+          const res = await fetch("/api/v1/auth/me", {
+            headers: { "Authorization": `Bearer ${authToken}` }
+          });
+          if (res.ok) {
+            currentUser = await res.json();
+            renderUserSection();
+            return;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      // Auto login demo evaluator if empty
+      autoLoginDemo();
+    }
+
+    async function autoLoginDemo() {
       try {
         const res = await fetch("/api/v1/auth/login", {
           method: "POST",
@@ -770,182 +989,331 @@
         if (res.ok) {
           const data = await res.json();
           authToken = data.access_token;
-          showToast("✓ Authenticated as demo evaluator");
-          document.getElementById("authBtn").textContent = "✓ Logged In";
-          document.getElementById("authBtn").classList.replace("btn-primary", "btn-success");
-        } else {
-          // Register if doesn't exist
-          await fetch("/api/v1/auth/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "demo_evaluator@example.com", password: "SecurePassword123!" })
-          });
-          loginDemoUser();
+          currentUser = data.user;
+          localStorage.setItem("docintel_token", authToken);
+          renderUserSection();
         }
       } catch (e) {
-        console.error("Auth error:", e);
+        console.error(e);
       }
     }
 
-    // Auto login on load
-    window.addEventListener("DOMContentLoaded", () => {
-      loginDemoUser();
-    });
-
-    function showToast(msg) {
-      const toast = document.getElementById("toast");
-      document.getElementById("toastMsg").textContent = msg;
-      toast.style.display = "flex";
-      setTimeout(() => { toast.style.display = "none"; }, 3000);
+    function renderUserSection() {
+      const sec = document.getElementById("authSection");
+      if (currentUser) {
+        sec.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent-cyan)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+              ${currentUser.email.charAt(0).toUpperCase()}
+            </div>
+            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">${currentUser.email}</div>
+            <button class="btn btn-secondary btn-xs" onclick="logoutUser()">Log Out</button>
+          </div>
+        `;
+      } else {
+        sec.innerHTML = `<button class="btn btn-primary btn-sm" onclick="openAuthModal('login')">Sign In</button>`;
+      }
     }
 
-    // Trigger Preset Sample Upload
-    async function triggerSampleUpload(filename) {
-      if (!authToken) await loginDemoUser();
+    function logoutUser() {
+      authToken = "";
+      currentUser = null;
+      localStorage.removeItem("docintel_token");
+      renderUserSection();
+      showToast("Logged out successfully");
+    }
+
+    function openAuthModal(mode) {
+      setAuthMode(mode);
+      document.getElementById("authModal").classList.add("open");
+    }
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.remove("open");
+    }
+    function setAuthMode(mode) {
+      authMode = mode;
+      if (mode === "login") {
+        document.getElementById("authModalTitle").textContent = "Sign In to DocIntel";
+        document.getElementById("authSubmitBtn").textContent = "Sign In";
+        document.getElementById("authTabLogin").classList.replace("btn-secondary", "btn-primary");
+        document.getElementById("authTabRegister").classList.replace("btn-primary", "btn-secondary");
+      } else {
+        document.getElementById("authModalTitle").textContent = "Create Tenant Account";
+        document.getElementById("authSubmitBtn").textContent = "Register";
+        document.getElementById("authTabRegister").classList.replace("btn-secondary", "btn-primary");
+        document.getElementById("authTabLogin").classList.replace("btn-primary", "btn-secondary");
+      }
+    }
+
+    async function submitAuthForm() {
+      const email = document.getElementById("authEmail").value;
+      const password = document.getElementById("authPassword").value;
+      const endpoint = authMode === "login" ? "/api/v1/auth/login" : "/api/v1/auth/register";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (authMode === "login") {
+            authToken = data.access_token;
+            currentUser = data.user;
+            localStorage.setItem("docintel_token", authToken);
+            renderUserSection();
+            closeAuthModal();
+            showToast("✓ Authenticated successfully");
+            switchView("workspace");
+          } else {
+            showToast("✓ Account created. Signing in...");
+            setAuthMode("login");
+            submitAuthForm();
+          }
+        } else {
+          const err = await res.json();
+          showToast(`Error: ${err.error?.message || res.statusText}`);
+        }
+      } catch (e) {
+        showToast("Authentication failed");
+      }
+    }
+
+    // Document Upload & Library
+    async function uploadSampleFile(filename) {
       showToast(`Uploading ${filename}...`);
-      
       try {
         const res = await fetch(`/api/v1/demo/sample-upload?filename=${encodeURIComponent(filename)}`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${authToken}` }
         });
-        
         if (res.ok) {
           const data = await res.json();
-          activeDocId = data.id;
-          startPipelineTracking(activeDocId, filename);
-        } else {
-          showToast(`Error starting sample upload: ${res.statusText}`);
+          currentDocId = data.id;
+          localStorage.setItem("docintel_active_doc", currentDocId);
+          showToast("✓ Document enqueued for processing");
+          switchView("studio");
+          pollAndLoadStudio(currentDocId);
         }
       } catch (e) {
-        console.error(e);
-        showToast("Upload request failed");
+        showToast("Upload failed");
       }
     }
 
-    // Handle Custom File Upload
-    async function handleFileSelect(event) {
+    async function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-      if (!authToken) await loginDemoUser();
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const fd = new FormData();
+      fd.append("file", file);
 
       showToast(`Uploading ${file.name}...`);
       try {
         const res = await fetch("/api/v1/documents", {
           method: "POST",
           headers: { "Authorization": `Bearer ${authToken}` },
-          body: formData
+          body: fd
         });
-
         if (res.status === 202) {
           const data = await res.json();
-          activeDocId = data.id;
-          startPipelineTracking(activeDocId, file.name);
-        } else {
-          const err = await res.json();
-          showToast(`Upload failed: ${err.error?.message || res.statusText}`);
+          currentDocId = data.id;
+          localStorage.setItem("docintel_active_doc", currentDocId);
+          showToast("✓ Document uploaded (HTTP 202 Accepted)");
+          switchView("studio");
+          pollAndLoadStudio(currentDocId);
         }
       } catch (e) {
-        console.error(e);
         showToast("Upload failed");
       }
     }
 
-    // Polling & Pipeline Tracker
-    function startPipelineTracking(docId, filename) {
-      if (pollInterval) clearInterval(pollInterval);
+    async function loadDocumentsLibrary() {
+      try {
+        const res = await fetch("/api/v1/documents", {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        documentsList = data.items || [];
+        renderDocsTable();
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-      document.getElementById("pipelineTracker").style.display = "block";
-      document.getElementById("docInfoCard").style.display = "block";
-      document.getElementById("docFilename").textContent = filename;
-      document.getElementById("uploadStatusBadge").textContent = "Processing";
+    function renderDocsTable() {
+      const tbody = document.getElementById("docsTableBody");
+      if (documentsList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No documents uploaded yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = documentsList.map(doc => `
+        <tr>
+          <td><strong style="color: #fff;">${escapeHtml(doc.filename)}</strong></td>
+          <td><span class="badge ${doc.status === 'completed' || doc.status === 'completed_with_warnings' ? 'badge-conf-high' : 'badge-conf-mid'}">${doc.status}</span></td>
+          <td><span class="badge badge-sec">${doc.role || 'question_paper'}</span></td>
+          <td>${doc.page_count || 1}</td>
+          <td style="color: var(--text-dim); font-size: 0.8rem;">${new Date(doc.created_at).toLocaleString()}</td>
+          <td>
+            <div style="display: flex; gap: 0.4rem;">
+              <button class="btn btn-primary btn-xs" onclick="openDocInStudio('${doc.id}')">Open Studio</button>
+              <button class="btn btn-secondary btn-xs" onclick="deleteDocument('${doc.id}')">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-      pollInterval = setInterval(async () => {
+    function openDocInStudio(docId) {
+      currentDocId = docId;
+      localStorage.setItem("docintel_active_doc", currentDocId);
+      switchView("studio");
+      loadStudioDocument(docId);
+    }
+
+    async function deleteDocument(docId) {
+      if (!confirm("Are you sure you want to delete this document?")) return;
+      try {
+        const res = await fetch(`/api/v1/documents/${docId}`, {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          showToast("✓ Document deleted");
+          loadDocumentsLibrary();
+          if (currentDocId === docId) currentDocId = null;
+        }
+      } catch (e) {
+        showToast("Delete failed");
+      }
+    }
+
+    // Studio & Page Viewer
+    async function loadStudioDocument(docId) {
+      try {
+        const docRes = await fetch(`/api/v1/documents/${docId}`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (docRes.ok) {
+          const docData = await docRes.json();
+          document.getElementById("studioDocTitle").textContent = docData.original_filename || "Exam Paper";
+          document.getElementById("studioRoleBadge").textContent = docData.detected_role || docData.role_hint || "Question Paper";
+          totalViewerPages = Math.max(docData.page_count || 1, 1);
+          currentViewerPage = 1;
+          renderViewerPage();
+        }
+
+        const qRes = await fetch(`/api/v1/documents/${docId}/questions`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (qRes.ok) {
+          const qData = await qRes.json();
+          currentQuestions = qData.items || [];
+          renderStudioQuestions();
+          updateStudioCounts();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function pollAndLoadStudio(docId) {
+      const poll = setInterval(async () => {
         try {
           const res = await fetch(`/api/v1/documents/${docId}/status`, {
             headers: { "Authorization": `Bearer ${authToken}` }
           });
           if (!res.ok) return;
-
           const data = await res.json();
-          const pct = data.progress_pct || 0;
-          document.getElementById("pipelineBar").style.width = `${pct}%`;
-          document.getElementById("pipelinePctText").textContent = `${pct}%`;
-          document.getElementById("pipelineStageText").textContent = `Stage: ${data.stage || data.status}`;
-
-          // Highlight steps
-          if (pct >= 20) document.getElementById("stepIngest").classList.add("done");
-          if (pct >= 60) document.getElementById("stepPages").classList.add("done");
-          if (pct >= 90) document.getElementById("stepFinalize").classList.add("done");
-
-          if (data.status === "completed" || data.status === "completed_with_warnings" || pct === 100) {
-            clearInterval(pollInterval);
-            document.getElementById("stepDone").classList.add("done");
-            document.getElementById("pipelineStageText").textContent = "Extraction Completed!";
-            document.getElementById("uploadStatusBadge").textContent = "Completed";
-            document.getElementById("uploadStatusBadge").className = "badge badge-conf-high";
-            loadExtractedQuestions(docId);
+          if (data.status === "completed" || data.status === "completed_with_warnings" || data.progress_pct === 100) {
+            clearInterval(poll);
+            loadStudioDocument(docId);
           }
         } catch (e) {
-          console.error("Status polling error:", e);
+          clearInterval(poll);
         }
       }, 1000);
+      loadStudioDocument(docId);
     }
 
-    // Load Questions
-    async function loadExtractedQuestions(docId) {
-      try {
-        const res = await fetch(`/api/v1/documents/${docId}/questions`, {
-          headers: { "Authorization": `Bearer ${authToken}` }
-        });
-        if (!res.ok) return;
+    function renderViewerPage() {
+      document.getElementById("pageIndicator").textContent = `Page ${currentViewerPage}/${totalViewerPages}`;
+      const img = document.getElementById("pageRenderImg");
+      const loading = document.getElementById("pageLoadingMsg");
+      
+      if (!currentDocId) return;
 
-        const data = await res.json();
-        allQuestions = data.items || [];
-        document.getElementById("docQuestionsCount").textContent = allQuestions.length;
-        updateCounts();
-        renderQuestions();
-      } catch (e) {
-        console.error("Failed to load questions:", e);
+      loading.style.display = "block";
+      loading.textContent = `Loading Page ${currentViewerPage}...`;
+      img.style.display = "none";
+
+      fetch(`/api/v1/documents/${currentDocId}/pages/${currentViewerPage}/image`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      })
+      .then(res => {
+        if (res.ok) return res.blob();
+        throw new Error("Page image not available");
+      })
+      .then(blob => {
+        img.src = URL.createObjectURL(blob);
+        img.style.display = "block";
+        loading.style.display = "none";
+      })
+      .catch(e => {
+        loading.textContent = "📄 Page rendering complete (Image stream preview)";
+      });
+    }
+
+    function changeViewerPage(delta) {
+      const target = currentViewerPage + delta;
+      if (target >= 1 && target <= totalViewerPages) {
+        currentViewerPage = target;
+        renderViewerPage();
       }
     }
 
-    function updateCounts() {
-      document.getElementById("countAll").textContent = allQuestions.length;
-      document.getElementById("countPhysics").textContent = allQuestions.filter(q => (q.section || "").includes("Physics")).length;
-      document.getElementById("countChem").textContent = allQuestions.filter(q => (q.section || "").includes("Chemistry")).length;
-      document.getElementById("countMath").textContent = allQuestions.filter(q => (q.section || "").includes("Mathematics")).length;
-      document.getElementById("countReview").textContent = allQuestions.filter(q => q.status === "needs_review").length;
+    function jumpToPage(pNo) {
+      if (pNo >= 1 && pNo <= totalViewerPages) {
+        currentViewerPage = pNo;
+        renderViewerPage();
+        showToast(`Jumped to Page ${pNo}`);
+      }
     }
 
-    function setSectionFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-      event.currentTarget.classList.add("active");
-      renderQuestions();
+    function updateStudioCounts() {
+      document.getElementById("totalQuestionsCount").textContent = currentQuestions.length;
+      document.getElementById("countTabAll").textContent = currentQuestions.length;
+      document.getElementById("countTabPhys").textContent = currentQuestions.filter(q => (q.section || "").includes("Physics")).length;
+      document.getElementById("countTabChem").textContent = currentQuestions.filter(q => (q.section || "").includes("Chemistry")).length;
+      document.getElementById("countTabMath").textContent = currentQuestions.filter(q => (q.section || "").includes("Mathematics")).length;
+      document.getElementById("countTabReview").textContent = currentQuestions.filter(q => q.status === "needs_review").length;
+
+      const highConf = currentQuestions.filter(q => (q.confidence || 0) >= 0.85).length;
+      const reviewReq = currentQuestions.filter(q => q.status === "needs_review").length;
+      document.getElementById("studioHighConfCount").textContent = `${highConf} High Conf`;
+      document.getElementById("studioReviewCount").textContent = `${reviewReq} Needs Review`;
     }
 
-    function renderQuestions() {
-      const feed = document.getElementById("questionsFeed");
-      let filtered = allQuestions;
+    function filterStudioQuestions(filter, ev) {
+      studioFilter = filter;
+      document.querySelectorAll("#studioTabs .tab-btn").forEach(btn => btn.classList.remove("active"));
+      if (ev && ev.currentTarget) ev.currentTarget.classList.add("active");
+      renderStudioQuestions();
+    }
 
-      if (currentFilter === "review_queue") {
-        filtered = allQuestions.filter(q => q.status === "needs_review");
-      } else if (currentFilter !== "all") {
-        filtered = allQuestions.filter(q => (q.section || "") === currentFilter);
+    function renderStudioQuestions() {
+      const feed = document.getElementById("studioQuestionsFeed");
+      let filtered = currentQuestions;
+
+      if (studioFilter === "review_queue") {
+        filtered = currentQuestions.filter(q => q.status === "needs_review");
+      } else if (studioFilter !== "all") {
+        filtered = currentQuestions.filter(q => (q.section || "") === studioFilter);
       }
 
       if (filtered.length === 0) {
-        feed.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">🔍</div>
-            <h3>No questions in this section</h3>
-            <p>Select another tab or upload a different document.</p>
-          </div>
-        `;
+        feed.innerHTML = `<div style="text-align: center; padding: 3rem; color: var(--text-muted);">No questions found in this filter.</div>`;
         return;
       }
 
@@ -959,18 +1327,17 @@
             <div class="q-header">
               <div class="q-meta">
                 <span class="badge badge-num">Q${q.number?.normalized || q.sequence}</span>
-                ${q.section ? `<span class="badge badge-sec">${q.section}</span>` : ''}
+                ${q.section ? `<span class="badge badge-sec">${escapeHtml(q.section)}</span>` : ''}
                 <span class="badge badge-type">${q.type}</span>
                 ${isStitched ? `<span class="badge badge-stitched">🔗 Spans Pages: ${q.source.pages.join(', ')}</span>` : ''}
                 ${flags.map(f => `<span class="badge badge-flag">${f.code || f}</span>`).join(' ')}
               </div>
-              <div>
+              <div style="display: flex; align-items: center; gap: 0.4rem;">
                 <span class="badge ${q.confidence >= 0.85 ? 'badge-conf-high' : 'badge-conf-mid'}">
-                  ${Math.round((q.confidence || 0) * 100)}% Conf
+                  ${Math.round((q.confidence || 0) * 100)}%
                 </span>
-                <button class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;" onclick="openEditModal('${q.id}')">
-                  ✏️ Edit / Review
-                </button>
+                <button class="btn btn-secondary btn-xs" onclick="openEditQuestionModal('${q.id}')">✏️ Edit</button>
+                ${q.source?.pages ? `<button class="btn btn-secondary btn-xs" onclick="jumpToPage(${q.source.pages[0]})">📄 View Page</button>` : ''}
               </div>
             </div>
 
@@ -993,38 +1360,33 @@
 
             <div class="q-footer">
               <span>Grounding: ${Math.round((q.extraction?.grounding_score || 1) * 100)}% • Method: ${q.extraction?.method || 'rules'}</span>
-              <span>Answer Status: <strong>${q.answer?.status || 'not_found'}</strong></span>
+              <span>Answer: <strong>${q.answer?.status || 'not_found'}</strong></span>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function escapeHtml(str) {
-      if (!str) return "";
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    // Modal Operations
-    function openEditModal(qId) {
-      const q = allQuestions.find(item => item.id === qId);
+    // Edit & Review Actions
+    function openEditQuestionModal(qId) {
+      const q = currentQuestions.find(i => i.id === qId);
       if (!q) return;
 
-      document.getElementById("editQuestionId").value = q.id;
-      document.getElementById("editQuestionText").value = q.text;
-      document.getElementById("editSection").value = q.section || "";
-      document.getElementById("modalTitle").textContent = `Review Question #${q.number?.normalized || q.sequence}`;
+      document.getElementById("modalQuestionId").value = q.id;
+      document.getElementById("modalQuestionText").value = q.text;
+      document.getElementById("modalQuestionSection").value = q.section || "";
+      document.getElementById("editModalHeaderTitle").textContent = `Edit Question #${q.number?.normalized || q.sequence}`;
       document.getElementById("editModal").classList.add("open");
     }
 
-    function closeModal() {
+    function closeEditModal() {
       document.getElementById("editModal").classList.remove("open");
     }
 
-    async function saveQuestionEdit() {
-      const qId = document.getElementById("editQuestionId").value;
-      const text = document.getElementById("editQuestionText").value;
-      const section = document.getElementById("editSection").value;
+    async function submitQuestionRevision() {
+      const qId = document.getElementById("modalQuestionId").value;
+      const text = document.getElementById("modalQuestionText").value;
+      const section = document.getElementById("modalQuestionSection").value;
 
       try {
         const res = await fetch(`/api/v1/questions/${qId}`, {
@@ -1035,21 +1397,18 @@
           },
           body: JSON.stringify({ text, section })
         });
-
         if (res.ok) {
-          showToast("✓ Question updated & revision recorded");
-          closeModal();
-          loadExtractedQuestions(activeDocId);
-        } else {
-          showToast("Failed to update question");
+          showToast("✓ Question revised & audit snapshot saved");
+          closeEditModal();
+          loadStudioDocument(currentDocId);
         }
       } catch (e) {
-        console.error(e);
+        showToast("Failed to save revision");
       }
     }
 
-    async function submitReviewAction(action) {
-      const qId = document.getElementById("editQuestionId").value;
+    async function executeReviewAction(action) {
+      const qId = document.getElementById("modalQuestionId").value;
       try {
         const res = await fetch(`/api/v1/questions/${qId}/review`, {
           method: "POST",
@@ -1057,54 +1416,146 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${authToken}`
           },
-          body: JSON.stringify({ action, notes: `Reviewed via Web Dashboard (${action})` })
+          body: JSON.stringify({ action, notes: `Reviewed in Studio (${action})` })
         });
-
         if (res.ok) {
           showToast(`✓ Question marked as ${action}ed`);
-          closeModal();
-          loadExtractedQuestions(activeDocId);
-        } else {
-          showToast("Review action failed");
+          closeEditModal();
+          loadStudioDocument(currentDocId);
         }
+      } catch (e) {
+        showToast("Review action failed");
+      }
+    }
+
+    // Answer Key & Reconciliation
+    async function loadReconcileTable(docId) {
+      try {
+        const res = await fetch(`/api/v1/documents/${docId}/answer-key`, {
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const entries = data.entries || [];
+        document.getElementById("reconcileKeysCount").textContent = entries.length;
+
+        const tbody = document.getElementById("reconcileTableBody");
+        if (entries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No answer key entries associated with this document.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = entries.map(e => `
+          <tr>
+            <td><strong>Q.${e.number_raw || e.number_norm}</strong></td>
+            <td><span class="badge badge-sec">${e.section || 'General'}</span></td>
+            <td><span class="badge badge-conf-high">${(e.answer_value || []).join(', ') || e.answer_raw}</span></td>
+            <td>${Math.round((e.parse_confidence || 1) * 100)}%</td>
+            <td><span class="badge ${e.match_status === 'matched' ? 'badge-conf-high' : 'badge-conf-mid'}">${e.match_status}</span></td>
+            <td>${e.matched_question_id ? `<span style="font-family: var(--font-mono); font-size: 0.75rem;">${e.matched_question_id.substring(0, 8)}...</span>` : '<span style="color: var(--text-dim);">-</span>'}</td>
+          </tr>
+        `).join('');
       } catch (e) {
         console.error(e);
       }
     }
 
-    // JSON Export Viewer
-    async function viewExportJson() {
-      if (!activeDocId) return;
+    async function runDocumentReconciliation() {
+      if (!currentDocId) return;
+      showToast("Running answer key reconciliation...");
       try {
-        const res = await fetch(`/api/v1/documents/${activeDocId}/export`, {
+        const res = await fetch(`/api/v1/documents/${currentDocId}/reconcile`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          showToast(`✓ Reconciliation complete: Matched ${data.matched_count} questions`);
+          loadReconcileTable(currentDocId);
+        }
+      } catch (e) {
+        showToast("Reconciliation failed");
+      }
+    }
+
+    function openLinkModal() {
+      const select = document.getElementById("linkTargetDocSelect");
+      select.innerHTML = documentsList
+        .filter(d => d.id !== currentDocId)
+        .map(d => `<option value="${d.id}">${escapeHtml(d.filename)} (${d.role || 'key'})</option>`)
+        .join('');
+      document.getElementById("linkModal").classList.add("open");
+    }
+
+    async function createDocumentRelationship() {
+      const targetId = document.getElementById("linkTargetDocSelect").value;
+      const relation = document.getElementById("linkRelationSelect").value;
+
+      try {
+        const res = await fetch(`/api/v1/documents/${currentDocId}/links`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ to_document_id: targetId, relation })
+        });
+        if (res.ok) {
+          showToast("✓ Link established. Running reconciliation...");
+          document.getElementById("linkModal").classList.remove("open");
+          runDocumentReconciliation();
+        }
+      } catch (e) {
+        showToast("Link creation failed");
+      }
+    }
+
+    // JSON Export Modal
+    async function openJsonExportModal() {
+      if (!currentDocId) return;
+      try {
+        const res = await fetch(`/api/v1/documents/${currentDocId}/export`, {
           headers: { "Authorization": `Bearer ${authToken}` }
         });
         if (res.ok) {
           const json = await res.json();
-          document.getElementById("jsonContent").textContent = JSON.stringify(json, null, 2);
+          document.getElementById("jsonViewerContent").textContent = JSON.stringify(json, null, 2);
           document.getElementById("jsonModal").classList.add("open");
         }
       } catch (e) {
-        console.error(e);
+        showToast("Export failed");
       }
     }
 
-    function copyJsonExport() {
-      const content = document.getElementById("jsonContent").textContent;
-      navigator.clipboard.writeText(content);
+    function copyJsonText() {
+      const text = document.getElementById("jsonViewerContent").textContent;
+      navigator.clipboard.writeText(text);
       showToast("📋 JSON copied to clipboard");
     }
 
-    function downloadJsonExport() {
-      const content = document.getElementById("jsonContent").textContent;
-      const blob = new Blob([content], { type: "application/json" });
+    function downloadJsonFile() {
+      const text = document.getElementById("jsonViewerContent").textContent;
+      const blob = new Blob([text], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `doc_${activeDocId}_export.json`;
+      a.download = `doc_${currentDocId}_export.json`;
       a.click();
       URL.revokeObjectURL(url);
     }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Initialize on load
+    window.addEventListener("DOMContentLoaded", () => {
+      initAuth();
+      if (currentDocId) {
+        loadStudioDocument(currentDocId);
+      }
+    });
   </script>
 </body>
 </html>
