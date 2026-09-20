@@ -59,15 +59,16 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] Answer key endpoints & summary counts
   - [x] Phase 5 test suite & verification (130 passed in 173s, ruff clean, mypy clean)
 
-- [ ] **Phase 6: Confidence, Warnings, Review, API Polish**
-  - [ ] Confidence formula implementation & configurable thresholds
-  - [ ] Flag catalog & critical flag rules forcing `needs_review`
-  - [ ] Warnings recording with page references
-  - [ ] Human review endpoints (`PATCH /questions/{id}`, `POST /questions/{id}/review`)
-  - [ ] Audit trail in `question_revisions`
-  - [ ] Filtered questions API, review queue, export endpoint
-  - [ ] OpenAPI documentation & schema export
-  - [ ] Phase 6 test suite & verification
+- [x] **Phase 6: Confidence, Warnings, Review, API Polish**
+  - [x] Confidence formula implementation & configurable thresholds (`app/pipeline/confidence.py`)
+  - [x] Flag catalog & critical flag rules forcing `needs_review` (`app/pipeline/validation.py`)
+  - [x] Warnings recording with page references (`warnings` table emission)
+  - [x] Human review endpoints (`PATCH /questions/{id}`, `POST /questions/{id}/review`)
+  - [x] Audit trail in `question_revisions` table
+  - [x] Filtered questions API, review queue, export endpoint, page image/asset streaming
+  - [x] SPEC §14 output schema & 409 `DOCUMENT_NOT_READY` state enforcement
+  - [x] OpenAPI documentation & schema export (`scripts/export_openapi.py` -> `openapi.json`)
+  - [x] Phase 6 test suite & verification (164 passed in 91.93s, ruff clean, mypy clean)
 
 - [ ] **Phase 7: Sample Documents, Tests, Evaluation**
   - [ ] `scripts/generate_samples.py` (digital, spanning, answer keys, scanned, corrupted)
@@ -101,14 +102,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 5 Completed -> Ready for Phase 6 (Confidence, Warnings, Review, API Polish)
-- **Active Task:** Phase 5 verification and git commit
+- **Current Phase:** Phase 6 Completed -> Ready for Phase 7 (Sample Documents, Tests, Evaluation)
+- **Active Task:** Phase 6 verification and git commit
 - **Verification Results:**
-  - Full Test Suite: `uv run pytest -q` -> **130 passed, 6 warnings in 173.25s**
-  - Targeted Unit Suite: `uv run pytest tests/unit/test_answer_keys.py -v` -> **9 passed in 2.33s**
-  - Targeted Integration Suite: `uv run pytest tests/integration/test_links_and_reconcile.py -v` -> **1 passed in 7.74s**
-  - Linter: `uv run ruff check app tests` -> **All checks passed!**
-  - Typecheck: `uv run mypy app` -> **Success: no issues found in 77 source files**
+  - Full Test Suite: `uv run pytest -q` -> **164 passed, 6 warnings in 91.93s**
+  - Targeted Unit Suite: `uv run pytest tests/unit/test_confidence.py tests/unit/test_validation.py -v` -> **27 passed in 0.40s**
+  - Targeted API Suite: `uv run pytest tests/api/test_review_and_questions.py -v` -> **7 passed in 5.60s**
+  - Linter: `uv run ruff check app tests scripts` -> **All checks passed!**
+  - Typecheck: `uv run mypy app` -> **Success: no issues found in 81 source files**
+  - OpenAPI Export: `uv run python scripts/export_openapi.py` -> **Exported openapi.json (92.1 KB)**
   - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None
-

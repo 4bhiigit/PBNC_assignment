@@ -104,14 +104,14 @@ async def test_end_to_end_rules_pipeline_and_api(client: AsyncClient) -> None:
 
     q1 = q_data["items"][0]
     assert q1["sequence"] == 1
-    assert q1["number_norm"] == "1"
+    assert q1["number"]["normalized"] == "1"
     assert "SI unit of force" in q1["text"]
     assert len(q1["options"]) == 4
     assert [opt["label"] for opt in q1["options"]] == ["A", "B", "C", "D"]
 
     q2 = q_data["items"][1]
     assert q2["sequence"] == 2
-    assert q2["number_norm"] == "2"
+    assert q2["number"]["normalized"] == "2"
     assert "abundant in Earth's atmosphere" in q2["text"]
     assert q2["answer"]["status"] == "matched"
     assert q2["answer"]["value"] == ["B"]

@@ -3,6 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.pipeline.confidence import compute_item_confidence_and_status
 from app.pipeline.extractors.schemas import (
     ExtractedFigure,
     ExtractedItem,
@@ -168,6 +169,13 @@ def stitch_document_extractions(pages_input: list[PageExtractionInput]) -> list[
                 if page_no not in current_q.source_pages:
                     current_q.source_pages.append(page_no)
 
+                # SPEC §10: min OCR confidence across stitched pages
+                if p.ocr_confidence is not None:
+                    if current_q.ocr_confidence is not None:
+                        current_q.ocr_confidence = min(current_q.ocr_confidence, p.ocr_confidence)
+                    else:
+                        current_q.ocr_confidence = p.ocr_confidence
+
                 current_q.figures.extend(item.figures)
                 if item.table_markdown:
                     current_q.table_markdown = (
@@ -299,88 +307,22 @@ def _resequence_and_audit_numbering(questions: list[StitchedQuestion]) -> None:
 
 def compute_question_confidence(q: StitchedQuestion) -> float:
     """Computes confidence score (0.0 to 1.0) strictly per SPEC §10."""
-    # text_quality: 1.0 if clean text layer, else OCR mean confidence
-    text_quality = q.ocr_confidence if q.ocr_confidence is not None else 1.0
-
-    # grounding: from rapidfuzz check, default 0.90 if not yet evaluated
-    grounding = q.grounding_score if q.grounding_score is not None else 0.90
-
-    # completeness check
-    completeness = 1.0
-    if not q.text or len(q.text.strip()) < 5:
-        completeness -= 0.40
-        if "MISSING_TEXT" not in q.flags:
-            q.flags.append("MISSING_TEXT")
-
-    is_mcq = q.type.startswith("mcq") or len(q.options) > 0
-    if is_mcq:
-        if len(q.options) < 2:
-            completeness -= 0.40
-            if "MCQ_OPTIONS_LT_2" not in q.flags:
-                q.flags.append("MCQ_OPTIONS_LT_2")
-        # Check option label uniqueness
-        labels = [opt.label for opt in q.options]
-        if len(labels) != len(set(labels)):
-            completeness -= 0.20
-
-    if not q.number_norm and "MISSING_NUMBER" in q.flags:
-        completeness -= 0.20
-
-    completeness = max(0.0, completeness)
-
-    # llm_self confidence
-    llm_self = q.llm_self_confidence if q.llm_self_confidence is not None else 1.0
-
-    # sequence_consistency: gap or duplicate lowers it
-    seq_consistency = 1.0
-    if "NUMBER_GAP" in q.flags:
-        seq_consistency -= 0.30
-    if "DUPLICATE_NUMBER" in q.flags:
-        seq_consistency -= 0.50
-    seq_consistency = max(0.0, seq_consistency)
-
-    # Base weighted sum
-    base = (
-        0.30 * text_quality
-        + 0.25 * grounding
-        + 0.25 * completeness
-        + 0.10 * llm_self
-        + 0.10 * seq_consistency
+    conf, status, updated_flags = compute_item_confidence_and_status(
+        text=q.text,
+        question_type=q.type,
+        options=[opt.model_dump() for opt in q.options],
+        number_norm=q.number_norm,
+        flags=q.flags,
+        ocr_confidence=q.ocr_confidence,
+        grounding_score=q.grounding_score,
+        llm_self_confidence=q.llm_self_confidence,
     )
-
-    # Penalties from SPEC §10
-    penalties = 0.0
-    if "CROSS_PAGE_STITCHED" in q.flags:
-        penalties += 0.05
-    if "STITCH_UNCERTAIN" in q.flags:
-        penalties += 0.15
-    if "LLM_FALLBACK_USED" in q.flags:
-        penalties += 0.10
-
-    raw_conf = max(0.0, min(1.0, base - penalties))
-    return round(raw_conf, 3)
+    q.flags = updated_flags
+    q.status = status
+    return conf
 
 
 def _compute_all_confidences(questions: list[StitchedQuestion]) -> None:
     """Computes confidence score and assigns status ('extracted', 'partial', 'needs_review')."""
-    critical_flags = {
-        "MISSING_TEXT",
-        "MCQ_OPTIONS_LT_2",
-        "LOW_GROUNDING",
-        "ORPHAN_FRAGMENT",
-        "ANSWER_OUT_OF_RANGE",
-    }
-
     for q in questions:
-        conf = compute_question_confidence(q)
-        q.confidence = conf
-
-        # Critical flags force needs_review regardless of score
-        has_critical = any(f in critical_flags for f in q.flags)
-
-        if has_critical or conf < 0.60:
-            q.status = "needs_review"
-        elif conf >= 0.85:
-            q.status = "extracted"
-        else:
-            q.status = "partial"
+        q.confidence = compute_question_confidence(q)

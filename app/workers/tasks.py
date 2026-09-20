@@ -34,6 +34,7 @@ from app.pipeline.ingest import ingest_document
 from app.pipeline.ocr import run_ocr
 from app.pipeline.preprocess import preprocess_page_image
 from app.pipeline.stitcher import PageExtractionInput, stitch_document_extractions
+from app.pipeline.validation import get_flag_severity
 from app.workers.celery_app import celery
 
 logger = logging.getLogger(__name__)
@@ -472,11 +473,53 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         )
         match_map = {r.question_id: r for r in match_results}
 
+        # Preserve existing reviewed questions if reprocessing
+        existing_reviewed_qs = (
+            session.execute(
+                select(Question).where(
+                    Question.document_id == doc_uuid,
+                    (Question.edited.is_(True))
+                    | (Question.review_state.in_(["approved", "corrected"])),
+                )
+            )
+            .scalars()
+            .all()
+        )
+        reviewed_by_seq = {q.sequence: q for q in existing_reviewed_qs}
+
         # Idempotently delete previous warnings and questions
         session.execute(delete(Warning).where(Warning.document_id == doc_uuid))
         session.execute(delete(Question).where(Question.document_id == doc_uuid))
 
+        # Add page-level warnings
+        for p in pages:
+            if p.status == "failed":
+                session.add(
+                    Warning(
+                        document_id=doc.id,
+                        page_no=p.page_no,
+                        code="PAGE_FAILED",
+                        severity="critical",
+                        message=f"Page {p.page_no} processing failed: {p.error}",
+                        details={"error": p.error},
+                    )
+                )
+            for qf in p.quality_flags or []:
+                code = qf.get("code", "UNKNOWN")
+                sev = get_flag_severity(code)
+                session.add(
+                    Warning(
+                        document_id=doc.id,
+                        page_no=p.page_no,
+                        code=code,
+                        severity=sev,
+                        message=qf.get("message", f"Page {p.page_no} quality flag: {code}"),
+                        details=qf,
+                    )
+                )
+
         storage = get_storage()
+        saved_questions = []
         for idx, q_data in enumerate(stitched_questions):
             q_id = q_ids[idx]
             match_res = match_map.get(q_id)
@@ -508,23 +551,8 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
 
             # Format structured flags for Question.flags and create Warning rows
             formatted_flags = []
-            critical_flags = {
-                "MISSING_TEXT",
-                "MCQ_OPTIONS_LT_2",
-                "LOW_GROUNDING",
-                "ORPHAN_FRAGMENT",
-                "ANSWER_OUT_OF_RANGE",
-            }
-            info_flags = {"CROSS_PAGE_STITCHED"}
-
             for flag_code in q_data.flags:
-                if flag_code in critical_flags:
-                    sev = "critical"
-                elif flag_code in info_flags:
-                    sev = "info"
-                else:
-                    sev = "warning"
-
+                sev = get_flag_severity(flag_code)
                 formatted_flags.append(
                     {
                         "code": flag_code,
@@ -559,17 +587,24 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
                     )
                 )
 
+            # Check if this question was previously reviewed
+            reviewed_prev = reviewed_by_seq.get(q_data.sequence)
+
             q = Question(
                 id=q_id,
                 document_id=doc.id,
                 sequence=q_data.sequence,
-                number_raw=q_data.number_raw,
-                number_norm=q_data.number_norm,
+                number_raw=reviewed_prev.number_raw if reviewed_prev else q_data.number_raw,
+                number_norm=reviewed_prev.number_norm if reviewed_prev else q_data.number_norm,
                 number_inferred=q_data.number_inferred,
-                section=q_data.section,
-                type=q_data.type,
-                text=q_data.text,
-                options=[opt.model_dump() for opt in q_data.options],
+                section=reviewed_prev.section if reviewed_prev else q_data.section,
+                type=reviewed_prev.type if reviewed_prev else q_data.type,
+                text=reviewed_prev.text if reviewed_prev else q_data.text,
+                options=(
+                    reviewed_prev.options
+                    if reviewed_prev
+                    else [opt.model_dump() for opt in q_data.options]
+                ),
                 source_pages=q_data.source_pages,
                 source_bboxes=q_data.source_bboxes,
                 extraction_method=settings.extractor,
@@ -577,16 +612,41 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
                 grounding_score=q_data.grounding_score,
                 llm_self_confidence=q_data.llm_self_confidence,
                 confidence=q_data.confidence,
-                status=q_data.status,
+                status="extracted" if reviewed_prev else q_data.status,
                 flags=formatted_flags,
-                answer_status=match_res.answer_status if match_res else "not_found",
-                answer_value=match_res.answer_value if match_res else [],
-                answer_raw=match_res.answer_raw if match_res else None,
-                answer_source=match_res.answer_source if match_res else {},
-                answer_confidence=match_res.answer_confidence if match_res else None,
+                answer_status=(
+                    reviewed_prev.answer_status
+                    if reviewed_prev
+                    else (match_res.answer_status if match_res else "not_found")
+                ),
+                answer_value=(
+                    reviewed_prev.answer_value
+                    if reviewed_prev
+                    else (match_res.answer_value if match_res else [])
+                ),
+                answer_raw=(
+                    reviewed_prev.answer_raw
+                    if reviewed_prev
+                    else (match_res.answer_raw if match_res else None)
+                ),
+                answer_source=(
+                    reviewed_prev.answer_source
+                    if reviewed_prev
+                    else (match_res.answer_source if match_res else {})
+                ),
+                answer_confidence=(
+                    reviewed_prev.answer_confidence
+                    if reviewed_prev
+                    else (match_res.answer_confidence if match_res else None)
+                ),
+                review_state=reviewed_prev.review_state if reviewed_prev else "none",
+                reviewed_by=reviewed_prev.reviewed_by if reviewed_prev else None,
+                reviewed_at=reviewed_prev.reviewed_at if reviewed_prev else None,
+                edited=reviewed_prev.edited if reviewed_prev else False,
             )
 
             session.add(q)
+            saved_questions.append(q)
 
         # Update entry statuses and matched question links
         for e in saved_entries:
@@ -596,7 +656,29 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
             if e.id in entry_statuses:
                 e.match_status = entry_statuses[e.id]
 
-        doc.status = "completed"
+        # Determine final status
+        has_failed_pages = any(p.status == "failed" for p in pages)
+        has_warnings = (
+            any(
+                q.status == "needs_review"
+                or any(f.get("severity") in ("warning", "critical") for f in (q.flags or []))
+                for q in saved_questions
+            )
+            or has_failed_pages
+            or any((p.quality_flags or []) for p in pages)
+        )
+
+        if (
+            len(stitched_questions) == 0
+            and has_failed_pages
+            and all(p.status == "failed" for p in pages)
+        ):
+            doc.status = "failed"
+        elif has_warnings:
+            doc.status = "completed_with_warnings"
+        else:
+            doc.status = "completed"
+
         doc.stage = "finalize"
         doc.progress_pct = 100
         doc.completed_at = datetime.now(UTC)
