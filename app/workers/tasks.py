@@ -97,7 +97,7 @@ def process_document(self: Any, document_id_str: str) -> dict[str, Any]:
                 has_text_layer=(p_info.decision in ("text_layer", "mixed")),
                 text_source=p_info.decision,
                 image_key=p_info.image_key,
-                raw_text=p_info.text if p_info.decision in ("text_layer", "mixed") else None,
+                raw_text=p_info.text if p_info.text and p_info.text.strip() else None,
             )
             session.add(page)
 
@@ -353,9 +353,15 @@ def finalize_document(self: Any, document_id_str: str) -> dict[str, Any]:
         session.execute(delete(AnswerKeyEntry).where(AnswerKeyEntry.document_id == doc_uuid))
         parsed_entries = []
         for p in pages:
+            has_llm_key_entries = bool(
+                p.extraction
+                and isinstance(p.extraction, dict)
+                and p.extraction.get("answer_key_entries")
+            )
             if (
                 is_answer_key_page(p.page_type, p.raw_text or "", p.section_heading)
                 or doc.role_hint == "answer_key"
+                or has_llm_key_entries
             ):
                 det_entries = parse_answer_key_text(
                     p.raw_text or "",

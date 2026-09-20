@@ -1,0 +1,404 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Document Intelligence & Question Extraction Service",
+    "description": "API collection for Document Intelligence & Question Extraction Service per SPEC §13.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "System Health",
+      "item": [
+        {
+          "name": "Liveness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["ready"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.environment.set(\"bearerToken\", jsonData.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Current User Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Upload Document",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.id) {",
+                  "    pm.environment.set(\"documentId\", jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "samples/input/digital_paper_mcq.pdf"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents"]
+            }
+          }
+        },
+        {
+          "name": "List Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "page_size", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Document Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Document Processing Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Get Rendered Page Image",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/pages/1/image",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "pages", "1", "image"]
+            }
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions & Review",
+      "item": [
+        {
+          "name": "Get Document Questions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.items && jsonData.items.length > 0) {",
+                  "    pm.environment.set(\"questionId\", jsonData.items[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "questions"]
+            }
+          }
+        },
+        {
+          "name": "Get Document Review Queue",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/review-queue",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "review-queue"]
+            }
+          }
+        },
+        {
+          "name": "Get Document Warnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/warnings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "warnings"]
+            }
+          }
+        },
+        {
+          "name": "Export Document JSON (SPEC §14)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "export"]
+            }
+          }
+        },
+        {
+          "name": "Get Question Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Edit Question (Creates Revision)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Updated question text after expert human review.\",\n  \"section\": \"Section A - Physics Updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Review Question (Approve/Reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"approve\",\n  \"notes\": \"Verified against syllabus and marking guide.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}", "review"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Answer Keys & Multi-Doc Links",
+      "item": [
+        {
+          "name": "Get Document Answer Keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/answer-key",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "answer-key"]
+            }
+          }
+        },
+        {
+          "name": "Create Document Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_document_id\": \"{{documentId}}\",\n  \"link_type\": \"answer_key_for\",\n  \"metadata\": {\"source\": \"manual_link\"}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/links",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "links"]
+            }
+          }
+        },
+        {
+          "name": "Reconcile Document Links",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{bearerToken}}"}
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/documents/{{documentId}}/reconcile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "documents", "{{documentId}}", "reconcile"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

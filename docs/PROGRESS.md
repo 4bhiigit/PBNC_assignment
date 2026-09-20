@@ -77,14 +77,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
   - [x] Real evaluation metrics saved to `docs/demo_evidence/evaluation.md`
   - [x] Phase 7 verification (171 passed, ruff clean, mypy clean)
 
-- [ ] **Phase 8: Documentation, Postman, Demo Evidence**
-  - [ ] `README.md` (quick start, architecture overview, configuration, test instructions)
-  - [ ] `docs/ARCHITECTURE.md` with Mermaid diagrams & walkthrough
-  - [ ] `docs/DECISIONS.md` ADR entries for key technical trade-offs
-  - [ ] `docs/AI_DISCLOSURE.md` (tools used during dev & runtime)
-  - [ ] Postman collection & environment in `docs/postman/`
-  - [ ] `scripts/run_demo.py` executing 10 live scenarios & generating `DEMO_REPORT.md`
-  - [ ] Phase 8 verification
+- [x] **Phase 8: Documentation, Postman, Demo Evidence**
+  - [x] `README.md` (quick start, architecture overview, configuration, test instructions)
+  - [x] `docs/ARCHITECTURE.md` with Mermaid diagrams & walkthrough
+  - [x] `docs/DECISIONS.md` ADR entries for key technical trade-offs (ADR-001 through ADR-006)
+  - [x] `docs/AI_DISCLOSURE.md` (tools used during dev & runtime)
+  - [x] Postman collection & environment in `docs/postman/`
+  - [x] `scripts/run_demo.py` executing 10 live scenarios & generating `DEMO_REPORT.md`
+  - [x] Phase 8 verification (10/10 demo scenarios passed, 171/171 tests passed, ruff clean, mypy clean)
 
 - [ ] **Phase 9: Polish Pass (Human-Style Cleanup)**
   - [ ] Codebase audit (remove dead code, redundant comments, generic names)
@@ -102,14 +102,14 @@ Tracking execution of Document Intelligence & Question Extraction Service across
 ---
 
 ## Current Status
-- **Current Phase:** Phase 6 Completed -> Ready for Phase 7 (Sample Documents, Tests, Evaluation)
-- **Active Task:** Phase 6 verification and git commit
+- **Current Phase:** Phase 8 Completed -> Ready for Phase 9 (Polish Pass) & Phase 10 (Final Audit)
+- **Active Task:** Phase 8 completed, verified, and committed
 - **Verification Results:**
-  - Full Test Suite: `uv run pytest -q` -> **164 passed, 6 warnings in 91.93s**
-  - Targeted Unit Suite: `uv run pytest tests/unit/test_confidence.py tests/unit/test_validation.py -v` -> **27 passed in 0.40s**
-  - Targeted API Suite: `uv run pytest tests/api/test_review_and_questions.py -v` -> **7 passed in 5.60s**
-  - Linter: `uv run ruff check app tests scripts` -> **All checks passed!**
+  - Full Test Suite: `uv run pytest` -> **171 passed, 7 warnings in 104.85s**
+  - Live Demo Runner: `uv run python scripts/run_demo.py` -> **All 10 scenarios passed (Exit code 0)**
+  - Linter: `uv run ruff check app tests scripts` -> **All checks passed! (0 errors)**
   - Typecheck: `uv run mypy app` -> **Success: no issues found in 81 source files**
-  - OpenAPI Export: `uv run python scripts/export_openapi.py` -> **Exported openapi.json (92.1 KB)**
+  - Demo Evidence: Generated `docs/demo_evidence/DEMO_REPORT.md`, `samples/output/digital_paper_mcq_export.json`, `samples/output/spanning_paper_export.json`
+  - Documentation: Completed `README.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` (ADR-001..006), `docs/AI_DISCLOSURE.md`, and Postman artifacts
   - Security & Secrets: `.env` untracked in `.gitignore`, `.env.example` verified with placeholders only
 - **Blockers / Approvals Needed:** None

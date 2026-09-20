@@ -41,7 +41,8 @@ def analyze_pdf_page(page: fitz.Page, min_chars: int = 50) -> PageAnalysisResult
 
     # Decision logic per SPEC §7
     is_image_dominated = image_coverage > 0.85
-    if text_chars >= min_chars and printable_ratio >= 0.80 and not is_image_dominated:
+    has_sufficient_text = text_chars >= min_chars or (image_coverage == 0.0 and text_chars >= 15)
+    if has_sufficient_text and printable_ratio >= 0.80 and not is_image_dominated:
         if image_coverage > 0.20:
             decision = "mixed"
         else:

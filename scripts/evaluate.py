@@ -5,11 +5,15 @@ Writes real report to docs/demo_evidence/evaluation.md.
 """
 
 import json
+import sys
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+# Ensure repo root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import sessionmaker
@@ -18,7 +22,6 @@ from app.config import get_settings
 from app.core.storage import get_storage
 from app.db.models.document import Document
 from app.db.models.question import Question
-from app.db.session import get_sync_db
 from app.workers.tasks import finalize_document, process_document, process_page
 
 INPUT_DIR = Path("samples/input")
@@ -168,7 +171,7 @@ def evaluate_sample(
                 matched_count += 1
                 exp_opts = exp_q.get("options", [])
                 if exp_opts and q.options:
-                    for e_opt, a_opt in zip(exp_opts, q.options):
+                    for e_opt, a_opt in zip(exp_opts, q.options, strict=False):
                         total_options += 1
                         if e_opt.get("label") == a_opt.get("label"):
                             correct_options += 1
